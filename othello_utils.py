@@ -9,4 +9,7 @@ class Direction(Enum):
     SOUTH_WEST = auto()
     WEST = auto()
     NORTH_WEST = auto()
-    
+
+class PlayerColor(Enum):
+    BLACK = -1
+    WHITE = 1

@@ -1,25 +1,26 @@
 import math
 import pygame
 from board import Board
+from othello_utils import PlayerColor
 
 class OthelloGame:
     def __init__(self) -> None:
         self.__points_black = self.__points_white = 0
-        self.__current_player = -1 # -1 for black, 1 for white
-        self.__accept_input = True # TODO: Parametrize it - set to true only if PvP or PvE with player's turn
+        self.__current_player = PlayerColor.BLACK
+        # self.__accept_input = True # TODO: Parametrize it - set to true only if PvP or PvE with player's turn
         self.__board = Board()
         pygame.init()
         pygame.display.set_caption("Othello")
         self.__font = pygame.font.SysFont('comicsans', 30)
         self.__window = pygame.display.set_mode((self.__board.WIDTH, self.__board.HEIGHT))
 
-    def run_game(self):
+    def run_game(self) -> None:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return False
-                if event.type == pygame.MOUSEBUTTONUP and self.__accept_input:
-                    pass
+                # if event.type == pygame.MOUSEBUTTONUP and self.__accept_input:
+                #     pass
             self.draw()
 
     def draw(self) -> None:
@@ -53,7 +54,7 @@ class OthelloGame:
                 if value == 0:
                     continue
                 field_y = j * size
-                color = 'black' if value == -1 else 'white'
+                color = 'black' if value == -1 else 'white' # TODO: Base it on player color
                 pygame.draw.circle(self.__window, color, (field_x + radius + 5, field_y + radius + 5), radius)
 
     def __draw_results(self) -> None:
@@ -61,14 +62,14 @@ class OthelloGame:
         self.__window.blit(self.__font.render(f'White: {self.__points_white}', 1, 'white'), (10, self.__board.HEIGHT // 2 - 45))
         self.__window.blit(self.__font.render(f'Black: {self.__points_black}', 1, 'black'), (10, self.__board.HEIGHT // 2))
 
-    def __move(self, row, col, player) -> None:
+    def __move(self, row: int, col: int, player: PlayerColor) -> None:
         self.__board[row, col] = player
 
     def __update_result(self):
         self.__points_black = self.__points_white = 0
         for i in range(self.__board.COLS):
             for j in range(self.__board.ROWS):
-                if self.__board[i,j] == -1:
+                if self.__board[i,j] == PlayerColor.BLACK:
                     self.__points_black += 1
-                elif self.__board[i,j] == 1:
+                elif self.__board[i,j] == PlayerColor.WHITE:
                     self.__points_white += 1
