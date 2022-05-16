@@ -2,8 +2,6 @@ from typing import Generator
 from othello_utils import Direction, PlayerColor
 
 class Board:
-    BG_COLOR = (0,100,0)
-    WIDTH, HEIGHT = 800, 600
     ROWS, COLS = 8, 8
 
     def __init__(self) -> None:
