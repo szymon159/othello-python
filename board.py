@@ -18,11 +18,19 @@ class Board:
                 value += val
         return value if value > 0 else -1
 
+    def refresh_result(self):
+        self.points[PlayerColor.BLACK] = self.points[PlayerColor.WHITE] = 0
+        for i in range(self.COLS):
+            for j in range(self.ROWS):
+                if self.__field[i][j] != 0:
+                    self.points[PlayerColor(self.__field[i][j])] += 1
+
     def __init_board(self) -> None:
-        self.__field = [[0 for i in range(self.ROWS)] for _ in range (self.COLS)]
+        self.__field = [[0 for _ in range(self.ROWS)] for _ in range (self.COLS)]
         center_row, center_col = self.ROWS // 2, self.COLS // 2
         self.__field[center_row - 1][center_col - 1] = self.__field[center_row][center_col] = 1
         self.__field[center_row - 1][center_col] = self.__field[center_row][center_col - 1] = -1
+        self.points = { PlayerColor.BLACK: 2, PlayerColor.WHITE: 2}
 
     def __evaluate_capture(self, row: int, col: int, direction: Direction, player: PlayerColor) -> int:
         value = 0
@@ -44,6 +52,7 @@ class Board:
 
     def __setitem__(self, key: tuple[int, int], value: int) -> None:
         self.__field[key[0]][key[1]] = value
+        self.refresh_result()
 
     def __delitem__(self, key: tuple[int, int]) -> None:
         self.__field[key[0]][key[1]] = 0

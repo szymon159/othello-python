@@ -5,9 +5,7 @@ from othello_utils import PlayerColor
 
 class OthelloGame:
     def __init__(self) -> None:
-        self.__points_black = self.__points_white = 0
-        self.__current_player = PlayerColor.BLACK
-        # self.__accept_input = True # TODO: Parametrize it - set to true only if PvP or PvE with player's turn
+        # self.__current_player = PlayerColor.BLACK
         self.__board = Board()
         pygame.init()
         pygame.display.set_caption("Othello")
@@ -58,18 +56,11 @@ class OthelloGame:
                 pygame.draw.circle(self.__window, color, (field_x + radius + 5, field_y + radius + 5), radius)
 
     def __draw_results(self) -> None:
-        self.__update_result()
-        self.__window.blit(self.__font.render(f'White: {self.__points_white}', 1, 'white'), (10, self.__board.HEIGHT // 2 - 45))
-        self.__window.blit(self.__font.render(f'Black: {self.__points_black}', 1, 'black'), (10, self.__board.HEIGHT // 2))
+        self.__board.refresh_result()
+        self.__window.blits([
+            (self.__font.render(f'White: {self.__board.points[PlayerColor.WHITE]}', 1, 'white'), (10, self.__board.HEIGHT // 2 - 45)),
+            (self.__font.render(f'Black: {self.__board.points[PlayerColor.BLACK]}', 1, 'black'), (10, self.__board.HEIGHT // 2))
+        ])
 
-    def __move(self, row: int, col: int, player: PlayerColor) -> None:
-        self.__board[row, col] = player
-
-    def __update_result(self):
-        self.__points_black = self.__points_white = 0
-        for i in range(self.__board.COLS):
-            for j in range(self.__board.ROWS):
-                if self.__board[i,j] == PlayerColor.BLACK:
-                    self.__points_black += 1
-                elif self.__board[i,j] == PlayerColor.WHITE:
-                    self.__points_white += 1
+    # def __move(self, row: int, col: int, player: PlayerColor) -> None:
+    #     self.__board[row, col] = player
