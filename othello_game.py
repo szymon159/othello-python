@@ -4,6 +4,8 @@ from board import Board
 from othello_utils import PlayerColor
 
 class OthelloGame:
+    __FPS = 60
+
     def __init__(self) -> None:
         # self.__current_player = PlayerColor.BLACK
         self.__board = Board()
@@ -13,13 +15,16 @@ class OthelloGame:
         self.__window = pygame.display.set_mode((self.__board.WIDTH, self.__board.HEIGHT))
 
     def run_game(self) -> None:
+        fps_clock = pygame.time.Clock()
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return False
                 # if event.type == pygame.MOUSEBUTTONUP and self.__accept_input:
                 #     pass
+
             self.draw()
+            fps_clock.tick(self.__FPS)
 
     def draw(self) -> None:
         self.__window.fill(self.__board.BG_COLOR)
