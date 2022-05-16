@@ -30,6 +30,7 @@ class OthelloGame:
         self.__window.fill(self.__board.BG_COLOR)
         self.__draw_board()
         self.__draw_results()
+        self.__draw_moves_evaluation()
         pygame.display.update()
 
     # def try_move(self, x, y) -> bool:
@@ -65,6 +66,23 @@ class OthelloGame:
             (self.__font.render(f'White: {self.__board.points[PlayerColor.WHITE]}', 1, 'white'), (10, self.__board.HEIGHT // 2 - 45)),
             (self.__font.render(f'Black: {self.__board.points[PlayerColor.BLACK]}', 1, 'black'), (10, self.__board.HEIGHT // 2))
         ])
+
+
+    def __draw_moves_evaluation(self) -> None:
+        left = self.__board.WIDTH - self.__board.HEIGHT
+        size = self.__board.HEIGHT / self.__board.ROWS
+
+        for i in range(self.__board.COLS):
+            field_x = left + i * size
+            for j in range(self.__board.ROWS):
+                field_y = j * size
+                val = self.__board.evaluate_move(i, j, PlayerColor.BLACK)
+                if val > -1:
+                    self.__window.blit(self.__font.render(f'{val}', 1, 'black'), (field_x + 30, field_y + 15))
+                val = self.__board.evaluate_move(i, j, PlayerColor.WHITE)
+                if val > -1:
+                    self.__window.blit(self.__font.render(f'{val}', 1, 'white'), (field_x + 30, field_y + 15))
+
 
     # def __move(self, row: int, col: int, player: PlayerColor) -> None:
     #     self.__board[row, col] = player
