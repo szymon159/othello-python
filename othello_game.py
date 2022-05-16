@@ -57,8 +57,7 @@ class OthelloGame:
                 if value == 0:
                     continue
                 field_y = j * size
-                color = 'black' if value == -1 else 'white' # TODO: Base it on player color
-                pygame.draw.circle(self.__window, color, (field_x + radius + 5, field_y + radius + 5), radius)
+                pygame.draw.circle(self.__window, PlayerColor(value).name, (field_x + radius + 5, field_y + radius + 5), radius)
 
     def __draw_results(self) -> None:
         self.__board.refresh_result()

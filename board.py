@@ -1,3 +1,4 @@
+from typing import Generator
 from othello_utils import Direction, PlayerColor
 
 class Board:
@@ -34,18 +35,43 @@ class Board:
 
     def __evaluate_capture(self, row: int, col: int, direction: Direction, player: PlayerColor) -> int:
         value = 0
-        if direction == Direction.NORTH:
-            if col == 0:
+        for field in self.__get_fields_in_direction(row, col, direction):
+            if field == 0:
                 return -1
-            for i in range(0, col - 1):
-                if self.__field[row][i] == 0:
-                    return -1
-                if self.__field[row][i] == -player:
-                    value += 1
-                else:
-                    return value
-        # TODO: All other directions
+            if field == player:
+                return value
+            value += 1
         return -1
+
+    def __get_fields_in_direction(self, start_row: int, start_col: int, direction: Direction) -> Generator[int, None, None]:
+        if direction == Direction.NORTH:
+            for i in range(0, start_row):
+                yield self.__field[i][start_col]
+        elif direction == Direction.EAST:
+            for i in range(start_col + 1, self.COLS):
+                yield self.__field[start_row][i]
+        elif direction == Direction.SOUTH:
+            for i in range(start_row + 1, self.ROWS):
+                yield self.__field[i][start_col]
+        elif direction == Direction.WEST:
+            for i in range(0, start_col):
+                yield self.__field[start_row][i]
+        elif direction == Direction.NORTH_EAST:
+            counter = min(start_row + 1, self.COLS - start_col)
+            for i in range(1, counter):
+                yield self.__field[start_row - i, start_col + i]
+        elif direction == Direction.SOUTH_EAST:
+            counter = min(self.ROWS - start_row, self.COLS - start_col)
+            for i in range(1, counter):
+                yield self.__field[start_row + i, start_col + i]
+        elif direction == Direction.SOUTH_WEST:
+            counter = min(self.ROWS - start_row, start_col + 1)
+            for i in range(1, counter):
+                yield self.__field[start_row + i][start_col - i]
+        elif direction == Direction.NORTH_WEST:
+            counter = min(start_row + 1, start_col + 1)
+            for i in range(1, counter):
+                yield self.__field[start_row - i][start_col - i]
 
     def __getitem__(self, key: tuple[int, int]) -> int:
         return self.__field[key[0]][key[1]]
