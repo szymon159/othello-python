@@ -3,7 +3,7 @@ import pygame
 
 from othello_utils import Direction
 
-class Board:
+class OthelloGame:
     __WIDTH, __HEIGHT = 800, 600
     __BG_COLOR = (0,100,0)
     __ROWS = 8

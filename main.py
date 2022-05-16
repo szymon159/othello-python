@@ -1,8 +1,8 @@
-from board import Board
+from othello_game import OthelloGame
 
 def main():
-    board = Board()
-    board.run_game()
+    game = OthelloGame()
+    game.run_game()
 
 if __name__ == "__main__":
     main()
