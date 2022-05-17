@@ -22,5 +22,5 @@ class RandomPlayer(Player):
         while True:
             col, row = random.randint(0, board.COLS - 1), random.randint(0, board.ROWS - 1)
             if board.evaluate_move(col, row, self.color) > 0:
-                time.sleep(5)
+                time.sleep(2)
                 return (col, row)

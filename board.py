@@ -26,6 +26,13 @@ class Board:
                 if self.__field[i][j] != 0:
                     self.points[PlayerColor(self.__field[i][j])] += 1
 
+    def can_move(self, color: PlayerColor) -> bool:
+        for col in range(self.COLS):
+            for row in range(self.ROWS):
+                if self.__field[col][row] == 0 and self.evaluate_move(col, row, color) > 0:
+                    return True
+        return False
+
     def __init_board(self) -> None:
         self.__field = [[0 for _ in range(self.ROWS)] for _ in range (self.COLS)]
         center_row, center_col = self.ROWS // 2, self.COLS // 2

@@ -14,6 +14,7 @@ class OthelloGame:
         self.__players = {player.color.value: player for player in players}
         self.__current_player = self.__players[PlayerColor.BLACK.value]
         self.__is_move_in_progress = False
+        self.__is_game_in_progress = False
         self.__board = Board()
         self.__field_size = self.__HEIGHT / self.__board.ROWS
         pygame.init()
@@ -22,6 +23,7 @@ class OthelloGame:
         self.__window = pygame.display.set_mode((self.__WIDTH, self.__HEIGHT))
 
     def run_game(self) -> None:
+        self.__is_game_in_progress = True
         fps_clock = pygame.time.Clock()
         while True:
             # Process events
@@ -32,6 +34,9 @@ class OthelloGame:
                 if event.type == pygame.MOUSEBUTTONDOWN and isinstance(self.__current_player, UserPlayer) and self.__is_move_in_progress:
                     self.__get_user_move(pygame.mouse.get_pos())
             # Get next move from AI
+            if not any(self.__board.can_move(player.color) for player in self.__players.values()):
+                self.__is_game_in_progress = False
+                self.__is_move_in_progress = False
             if not self.__is_move_in_progress:
                 self.__get_next_move()
             # Draw
@@ -67,7 +72,9 @@ class OthelloGame:
 
     def __draw_results(self) -> None:
         self.__board.refresh_result()
+        header = f'{self.__current_player.color.name.capitalize()}\'s turn' if self.__is_game_in_progress else 'Game over'
         self.__window.blits([
+            (self.__font.render(header, 1, self.__current_player.color.name), (10, self.__HEIGHT // 2 - 100)),
             (self.__font.render(f'White: {self.__board.points[PlayerColor.WHITE]}', 1, 'white'), (10, self.__HEIGHT // 2 - 45)),
             (self.__font.render(f'Black: {self.__board.points[PlayerColor.BLACK]}', 1, 'black'), (10, self.__HEIGHT // 2))
         ])
@@ -111,12 +118,12 @@ class OthelloGame:
         left = self.__WIDTH - self.__HEIGHT
         col = int(round(mouse_x - left) // self.__field_size)
         row = int(round(mouse_y) // self.__field_size)
-        print(col, row)
         return (col, row)
 
     def __move(self, col: int, row: int) -> None:
         for capture in self.__board.get_captures(col, row, self.__current_player.color):
             self.__board[capture[0], capture[1]] = self.__current_player.color.value
         self.__board[col, row] = self.__current_player.color.value
-        self.__current_player = self.__players[-self.__current_player.color.value]
+        if self.__board.can_move(self.__players[-self.__current_player.color.value].color):
+            self.__current_player = self.__players[-self.__current_player.color.value]
         self.__is_move_in_progress = False
