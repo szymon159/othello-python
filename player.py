@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import random
+import time
 
 from board import Board
 from othello_utils import PlayerColor
@@ -19,6 +20,7 @@ class UserPlayer(Player):
 class RandomPlayer(Player):
     def get_next_move(self, board: Board) -> tuple[int, int]:
         while True:
-            row, col = random.randint(0, board.ROWS - 1), random.randint(1, board.COLS - 1)
-            if board.evaluate_move(row, col, self.color) > 0:
-                return (row, col)
+            col, row = random.randint(0, board.COLS - 1), random.randint(0, board.ROWS - 1)
+            if board.evaluate_move(col, row, self.color) > 0:
+                time.sleep(5)
+                return (col, row)

@@ -8,14 +8,16 @@ class Board:
         self.__init_board()
 
     def evaluate_move(self, col: int, row: int, color: PlayerColor) -> int:
-        if self.__field[col][row] != 0:
-            return -1
-        value = 0
-        for direction in Direction:
-            val = self.__evaluate_capture(col, row, direction, color)
-            if val > 0:
-                value += val
+        value = len(self.get_captures(col, row, color))
         return value if value > 0 else -1
+
+    def get_captures(self, col: int, row: int, color: PlayerColor) -> list[tuple[int, int]]:
+        if self.__field[col][row] != 0:
+            return []
+        captures = []
+        for direction in Direction:
+            captures.extend(self.__get_captures_in_direction(col, row, direction, color))
+        return captures
 
     def refresh_result(self):
         self.points[PlayerColor.BLACK] = self.points[PlayerColor.WHITE] = 0
@@ -31,45 +33,46 @@ class Board:
         self.__field[center_col - 1][center_row] = self.__field[center_col][center_row - 1] = -1
         self.points = { PlayerColor.BLACK: 2, PlayerColor.WHITE: 2}
 
-    def __evaluate_capture(self, col: int, row: int, direction: Direction, player: PlayerColor) -> int:
-        value = 0
-        for field in self.__get_fields_in_direction(col, row, direction):
+    def __get_captures_in_direction(self, col: int, row: int, direction: Direction, player: PlayerColor) -> tuple[int, int]:
+        captures = []
+        for field_cords in self.__get_fields_in_direction(col, row, direction):
+            field = self.__field[field_cords[0]][field_cords[1]]
             if field == 0:
-                return -1
+                return []
             if field == player.value:
-                return value
-            value += 1
-        return -1
+                return captures
+            captures.append(field_cords)
+        return []
 
-    def __get_fields_in_direction(self, start_col: int, start_row: int, direction: Direction) -> Generator[int, None, None]:
+    def __get_fields_in_direction(self, start_col: int, start_row: int, direction: Direction) -> Generator[tuple[int, int], None, None]:
         if direction == Direction.NORTH:
             for i in range(start_row - 1, -1, -1):
-                yield self.__field[start_col][i]
+                yield (start_col, i)
         elif direction == Direction.EAST:
             for i in range(start_col + 1, self.COLS):
-                yield self.__field[i][start_row]
+                yield (i, start_row)
         elif direction == Direction.SOUTH:
             for i in range(start_row + 1, self.ROWS):
-                yield self.__field[start_col][i]
+                yield (start_col, i)
         elif direction == Direction.WEST:
             for i in range(start_col -1, -1, -1):
-                yield self.__field[i][start_row]
+                yield (i, start_row)
         elif direction == Direction.NORTH_EAST:
             counter = min(self.COLS - start_col, start_row + 1)
             for i in range(1, counter):
-                yield self.__field[start_col + i][start_row - i]
+                yield (start_col + i, start_row - i)
         elif direction == Direction.SOUTH_EAST:
             counter = min(self.COLS - start_col, self.ROWS - start_row)
             for i in range(1, counter):
-                yield self.__field[start_col + i][start_row + i]
+                yield (start_col + i, start_row + i)
         elif direction == Direction.SOUTH_WEST:
             counter = min(start_col + 1, self.ROWS - start_row)
             for i in range(1, counter):
-                yield self.__field[start_col - i][start_row + i]
+                yield (start_col - i, start_row + i)
         elif direction == Direction.NORTH_WEST:
             counter = min(start_col + 1, start_row + 1)
             for i in range(1, counter):
-                yield self.__field[start_col - i][start_row - i]
+                yield (start_col - i, start_row - i)
 
     def __getitem__(self, key: tuple[int, int]) -> int:
         return self.__field[key[0]][key[1]]
