@@ -100,7 +100,19 @@ class OthelloGame:
                 self.__move(col, row)
 
     def __get_user_move(self, mouse_pos: tuple[int, int]) -> None:
-        pass
+        col, row = self.__get_field_from_mouse_pos(mouse_pos)
+        if col < 0 or row < 0:
+            return
+        if self.__board.evaluate_move(col, row, self.__current_player.color) > 0:
+            self.__move(col, row)
+
+    def __get_field_from_mouse_pos(self, mouse_pos: tuple[int, int]) -> tuple[int, int]:
+        mouse_x, mouse_y = mouse_pos
+        left = self.__WIDTH - self.__HEIGHT
+        col = int(round(mouse_x - left) // self.__field_size)
+        row = int(round(mouse_y) // self.__field_size)
+        print(col, row)
+        return (col, row)
 
     def __move(self, col: int, row: int) -> None:
         for capture in self.__board.get_captures(col, row, self.__current_player.color):
