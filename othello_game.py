@@ -1,3 +1,4 @@
+import copy
 import math
 import threading
 import pygame
@@ -97,21 +98,21 @@ class OthelloGame:
         self.__is_move_in_progress = True
         if isinstance(self.__current_player, UserPlayer):
             return
+        if not self.__is_move_in_progress or not self.__is_game_in_progress:
+            return
         thread = threading.Thread(target=self.__get_bot_move)
         thread.start()
 
     def __get_bot_move(self) -> None:
-        while self.__is_move_in_progress:
-            col, row = self.__current_player.get_next_move(self.__board)
-            if self.__board.evaluate_move(col, row, self.__current_player.color) > 0:
-                self.__move(col, row)
+        while self.__is_move_in_progress and self.__is_game_in_progress:
+            col, row = self.__current_player.get_next_move(copy.deepcopy(self.__board))
+            self.__move(col, row)
 
     def __get_user_move(self, mouse_pos: tuple[int, int]) -> None:
         col, row = self.__get_field_from_mouse_pos(mouse_pos)
         if col < 0 or row < 0:
             return
-        if self.__board.evaluate_move(col, row, self.__current_player.color) > 0:
-            self.__move(col, row)
+        self.__move(col, row)
 
     def __get_field_from_mouse_pos(self, mouse_pos: tuple[int, int]) -> tuple[int, int]:
         mouse_x, mouse_y = mouse_pos
@@ -121,9 +122,8 @@ class OthelloGame:
         return (col, row)
 
     def __move(self, col: int, row: int) -> None:
-        for capture in self.__board.get_captures(col, row, self.__current_player.color):
-            self.__board[capture[0], capture[1]] = self.__current_player.color.value
-        self.__board[col, row] = self.__current_player.color.value
+        if not self.__board.move(col, row, self.__current_player.color):
+            return
         if self.__board.can_move(self.__players[-self.__current_player.color.value].color):
             self.__current_player = self.__players[-self.__current_player.color.value]
         self.__is_move_in_progress = False

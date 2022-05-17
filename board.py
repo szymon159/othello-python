@@ -33,6 +33,14 @@ class Board:
                     return True
         return False
 
+    def move(self, col: int, row: int, color: PlayerColor) -> bool:
+        if self.evaluate_move(col, row, color) < 0:
+            return False
+        for capture in self.get_captures(col, row, color):
+            self.__field[capture[0]][capture[1]] = color.value
+        self.__field[col][row] = color.value
+        return True
+
     def __init_board(self) -> None:
         self.__field = [[0 for _ in range(self.ROWS)] for _ in range (self.COLS)]
         center_row, center_col = self.ROWS // 2, self.COLS // 2
