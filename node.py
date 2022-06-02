@@ -35,7 +35,7 @@ class Node:
         return wins - loses
 
     '''
-    Returns an amount 
+    Returns an amount of times the node was visited
     '''
     def n(self):
         return self._number_of_visits
@@ -71,7 +71,7 @@ class Node:
         return current_rollout_state.game_result()
 
     '''
-    Backpropagate through visited nodes and updates statistics
+    Backpropagates through visited nodes and updates statistics
     '''
     def backpropagate(self, result):
         self._number_of_visits += 1.
