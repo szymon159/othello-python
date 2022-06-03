@@ -5,7 +5,7 @@ from node import Node
 import player
 
 class UCTPlayer(player.Player):
-    def __init__(self, color: PlayerColor, simulation_count: int = 1000) -> None:
+    def __init__(self, color: PlayerColor, simulation_count: int = 200) -> None:
         super().__init__(color)
         self.simulation_count = simulation_count
 

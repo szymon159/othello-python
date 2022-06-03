@@ -11,12 +11,16 @@ class State:
     Returns True if game is over
     '''
     def is_game_over(self):
+        if self.board.points[PlayerColor.BLACK] + self.board.points[PlayerColor.WHITE] == 64:
+            return True
         return not (self.board.can_move(self.current_color) or self.board.can_move(PlayerColor(-self.current_color.value)))
 
     '''
     Returns True if game is over
     '''
     def can_move(self):
+        if self.board.points[PlayerColor.BLACK] + self.board.points[PlayerColor.WHITE] == 64:
+            return False
         return self.board.can_move(self.current_color)
 
     '''
@@ -49,6 +53,7 @@ class State:
     def move(self, col, row):
         board_copy = copy.deepcopy(self.board)
         board_copy.move(col, row, self.current_color)
+        board_copy.refresh_result()
         return board_copy, PlayerColor(-self.current_color.value)
 
 

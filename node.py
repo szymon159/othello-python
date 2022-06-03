@@ -67,9 +67,9 @@ class Node:
     def rollout(self):
         current_rollout_state = copy.deepcopy(self.state)
 
-        while not current_rollout_state.is_game_over():
-            if not current_rollout_state.can_move():
-                current_rollout_state.change_color()
+        while current_rollout_state.can_move():
+            # if not current_rollout_state.can_move():
+            #     current_rollout_state.change_color()
 
             possible_moves = current_rollout_state.get_legal_actions()
             col, row, _ = self.rollout_policy(possible_moves)
@@ -96,7 +96,7 @@ class Node:
     '''
     Returns the most promising child using the UCT formula
     '''
-    def best_child(self, c_param=0.1):     
+    def best_child(self, c_param=1.3):     
         choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
         return self.children[np.argmax(choices_weights)]     
 
@@ -127,7 +127,7 @@ class Node:
     '''
     def best_action(self, simulation_count):        
         for i in range(simulation_count):
-            
+            #print(f'Iteration {i}')
             v = self._tree_policy()
             reward = v.rollout()
             v.backpropagate(reward)
