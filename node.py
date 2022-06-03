@@ -96,8 +96,8 @@ class Node:
     '''
     Returns the most promising child using the UCT formula
     '''
-    def best_child(self, c_param=1.3):     
-        choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
+    def best_child(self, c_param=1):     
+        choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self.children]
         return self.children[np.argmax(choices_weights)]     
 
     '''
@@ -118,7 +118,7 @@ class Node:
             if not current_node.is_fully_expanded():
                 return current_node.expand()
             else:
-                current_node = current_node.best_child()
+                current_node = current_node.best_child(c_param= np.sqrt(2))
 
         return current_node    
 
