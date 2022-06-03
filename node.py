@@ -1,3 +1,4 @@
+from os import stat
 from pyparsing import White
 from board import Board
 from othello_utils import PlayerColor
@@ -5,16 +6,19 @@ from state import State
 from player import Player
 from collections import defaultdict
 import numpy as np
+import copy
 
 class Node:
-    def __init__(self, state: State, parent=None, parent_action=None):
+    def __init__(self, state: State, color: PlayerColor, parent=None, parent_action=None):
         self.state = state
+        self.player_color = color
         self.parent = parent
         self.parent_action = parent_action
         self.children = []
         self._number_of_visits = 0
         self._results = defaultdict(int)
         self._results[1] = 0
+        self._results[0] = 0
         self._results[-1] = 0
         self._untried_actions = None
         self._untried_actions = self.untried_actions()
@@ -44,9 +48,9 @@ class Node:
     Expands the three towards a random unexplored child 
     '''
     def expand(self):
-        col, row, color = self._untried_actions.pop()
-        next_state = self.state.move(col, row, color)
-        child_node = Node(next_state, parent=self, parent_action=(col, row, color))
+        col, row, move_color = self._untried_actions.pop()
+        board, color= self.state.move(col, row)
+        child_node = Node(State(board, color), self.player_color, parent=self, parent_action=(col, row, move_color))
 
         self.children.append(child_node)
         return child_node     
@@ -61,14 +65,18 @@ class Node:
     Simulate the game from node
     '''
     def rollout(self):
-        current_rollout_state = self.state
+        current_rollout_state = copy.deepcopy(self.state)
 
         while not current_rollout_state.is_game_over():
-            
+            if not current_rollout_state.can_move():
+                current_rollout_state.change_color()
+
             possible_moves = current_rollout_state.get_legal_actions()
-            col, row, color = self.rollout_policy(possible_moves)
-            current_rollout_state = current_rollout_state.move(col, row, color)
-        return current_rollout_state.game_result()
+            col, row, _ = self.rollout_policy(possible_moves)
+            board, color = current_rollout_state.move(col, row)
+            current_rollout_state = State(board, color)
+
+        return current_rollout_state.game_result(self.player_color)
 
     '''
     Backpropagate through visited nodes and updates statistics
@@ -105,21 +113,20 @@ class Node:
     def _tree_policy(self):
 
         current_node = self
-        while not current_node.is_terminal_node():
+        while current_node.state.can_move():
             
             if not current_node.is_fully_expanded():
                 return current_node.expand()
             else:
                 current_node = current_node.best_child()
+
         return current_node    
 
     '''
     Returns best action for node
     '''
-    def best_action(self):
-        simulation_no = 5000
-        
-        for i in range(simulation_no):
+    def best_action(self, simulation_count):        
+        for i in range(simulation_count):
             
             v = self._tree_policy()
             reward = v.rollout()
