@@ -5,7 +5,7 @@ from player import RandomPlayer
 from uct_player import UCTPlayer
 
 def main():
-    players = [SimpleHeuristicPlayer(PlayerColor.BLACK), AlphaBetaHeuristicPlayer(PlayerColor.WHITE)]
+    players = [UCTPlayer(PlayerColor.BLACK, 666, 100), AlphaBetaHeuristicPlayer(PlayerColor.WHITE)]
     game = OthelloGame(players)
     if not game.run_game():
         pass

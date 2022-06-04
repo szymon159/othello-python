@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from collections import defaultdict
 import copy
+from random import Random
 import numpy as np
 from othello_utils import PlayerColor, MCTSVersion
 from state import AlphaBetaState, State
@@ -32,7 +33,7 @@ class Node:
         return self.state.is_game_over()
 
 class MCTSNode(Node):
-    def __init__(self, state: State, color: PlayerColor, parent=None, parent_action: tuple[int, int, PlayerColor] = None, version: MCTSVersion = MCTSVersion.UCT):
+    def __init__(self, state: State, color: PlayerColor, seed: int, parent=None, parent_action: tuple[int, int, PlayerColor] = None, version: MCTSVersion = MCTSVersion.UCT):
         super().__init__(state, color, parent, parent_action)
         self.version = version
         self._children = []
@@ -44,6 +45,8 @@ class MCTSNode(Node):
         self._untried_actions = None
         self._untried_actions = self.untried_actions()
         self._reward_list = []
+        self._random_seed = seed
+        self._random = Random(self._random_seed)
 
     def best_action(self, simulation_count: int) -> tuple[int, int]:
         '''
@@ -89,7 +92,7 @@ class MCTSNode(Node):
         '''
         col, row, move_color = self._untried_actions.pop()
         board, color= self.state.move(col, row)
-        child_node = MCTSNode(State(board, color), self.player_color, parent=self, parent_action=(col, row, move_color))
+        child_node = MCTSNode(State(board, color), self.player_color, self._random_seed, parent=self, parent_action=(col, row, move_color))
 
         self._children.append(child_node)
         return child_node
@@ -133,21 +136,21 @@ class MCTSNode(Node):
         Returns the most promising child using the formula specified by version
         '''
         if self.version == MCTSVersion.UCT:
-            choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
+            choices_weights = [(c.valuate() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
         return self._children[np.argmax(choices_weights)]
 
     def best_child_simple(self) -> "MCTSNode":
         '''
         Returns the best child using simple formula
         '''
-        choices_weights = [(c.q() / c.n())  for c in self._children]
+        choices_weights = [(c.valuate() / c.n())  for c in self._children]
         return self._children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves: list[tuple[int, int, PlayerColor]]) -> tuple[int, int, PlayerColor]:
         '''
         Returns random move
         '''
-        return possible_moves[np.random.randint(len(possible_moves))]
+        return possible_moves[self._random.randint(0, len(possible_moves) - 1)]
 
     def _tree_policy(self) -> "MCTSNode":
         '''
