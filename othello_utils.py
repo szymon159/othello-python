@@ -14,7 +14,7 @@ class PlayerColor(Enum):
     BLACK = -1
     WHITE = 1
 
-class UCTVersion(Enum):
+class MCTSVersion(Enum):
     UCT = auto()
     UCB1_TUNED = auto()
     UCT_GROUPING = auto()
