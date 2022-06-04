@@ -137,8 +137,8 @@ class Node:
         '''
         Returns best action for node
         '''
-        for _ in range(simulation_count):
-            #print(f'Iteration {i}')
+        for i in range(simulation_count):
+            # print(f'Iteration {i}')
             v = self._tree_policy()
             reward = v.rollout()
             v.backpropagate(reward)
