@@ -27,6 +27,9 @@ class Board:
                     self.points[PlayerColor(self.__field[i][j])] += 1
 
     def can_move(self, color: PlayerColor) -> bool:
+        if self.points[PlayerColor.BLACK] + self.points[PlayerColor.WHITE] == 64:
+            return False
+
         for col in range(self.COLS):
             for row in range(self.ROWS):
                 if self.__field[col][row] == 0 and self.evaluate_move(col, row, color) > 0:
