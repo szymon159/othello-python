@@ -1,7 +1,7 @@
 from os import stat
 from pyparsing import White
 from board import Board
-from othello_utils import PlayerColor
+from othello_utils import PlayerColor, MCTSVersion
 from state import State
 from player import Player
 from collections import defaultdict
@@ -9,12 +9,13 @@ import numpy as np
 import copy
 
 class Node:
-    def __init__(self, state: State, color: PlayerColor, parent=None, parent_action=None):
+    def __init__(self, state: State, color: PlayerColor, parent=None, parent_action=None, version: MCTSVersion = MCTSVersion.UCT):
         self.state = state
         self.uct_player_color = color
         self.parent = parent
         self.parent_action = parent_action
-        self.children = []
+        self.version = version
+        self._children = []
         self._number_of_visits = 0
         self._results = defaultdict(int)
         self._results[1] = 0
@@ -22,6 +23,7 @@ class Node:
         self._results[-1] = 0
         self._untried_actions = None
         self._untried_actions = self.untried_actions()
+        self._reward_list = []
 
     '''
     Returns all untried actions from this node's state
@@ -56,7 +58,7 @@ class Node:
         board, color= self.state.move(col, row)
         child_node = Node(State(board, color), self.uct_player_color, parent=self, parent_action=(col, row, move_color))
 
-        self.children.append(child_node)
+        self._children.append(child_node)
         return child_node     
 
     '''
@@ -100,11 +102,19 @@ class Node:
         return len(self._untried_actions) == 0       
 
     '''
-    Returns the most promising child using the UCT formula
+    Returns the most promising child using the formula specified by version
     '''
     def best_child(self, c_param=1):     
-        choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self.children]
-        return self.children[np.argmax(choices_weights)]     
+        if self.version == MCTSVersion.UCT:
+            choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
+        return self._children[np.argmax(choices_weights)]     
+
+    '''
+    Returns the best child using simple formula
+    '''
+    def best_child_simple(self):     
+        choices_weights = [(c.q() / c.n())  for c in self._children]
+        return self._children[np.argmax(choices_weights)]   
 
     '''
     Returns random move
@@ -138,4 +148,4 @@ class Node:
             reward = v.rollout()
             v.backpropagate(reward)
         
-        return self.best_child(c_param=0.)           
+        return self.best_child_simple()           
