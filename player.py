@@ -21,5 +21,5 @@ class UserPlayer(Player):
 class RandomPlayer(Player):
     def get_next_move(self, board_copy: Board) -> tuple[int, int]:
         moves = board_copy.get_legal_actions(self.color)
-        col, row, _ = moves[np.random.randint(len(moves))]
+        col, row = moves[np.random.randint(len(moves))]
         return (col, row)

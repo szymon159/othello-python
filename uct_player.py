@@ -1,7 +1,7 @@
 from board import Board
 from othello_utils import PlayerColor, MCTSVersion
 from state import State
-from node import Node
+from node import MCTSNode
 import player
 
 class UCTPlayer(player.Player):
@@ -11,8 +11,5 @@ class UCTPlayer(player.Player):
         self.version = version
 
     def get_next_move(self, board_copy: Board) -> tuple[int, int]:
-        tree_root = Node(State(board_copy, self.color), self.color, version = self.version)
-        best_action = tree_root.best_action(self.simulation_count)
-        col, row, _  = best_action.parent_action
-
-        return (col, row)
+        tree_root = MCTSNode(State(board_copy, self.color), self.color, version = self.version)
+        return tree_root.best_action(self.simulation_count)
