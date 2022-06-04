@@ -11,7 +11,7 @@ import copy
 class Node:
     def __init__(self, state: State, color: PlayerColor, parent=None, parent_action=None):
         self.state = state
-        self.player_color = color
+        self.uct_player_color = color
         self.parent = parent
         self.parent_action = parent_action
         self.children = []
@@ -28,6 +28,10 @@ class Node:
     '''
     def untried_actions(self):
         self._untried_actions = self.state.get_legal_actions()
+        if len(self._untried_actions) == 0:
+            self.state.change_color()
+            self._untried_actions = self.state.get_legal_actions()
+
         return self._untried_actions
 
     '''
@@ -50,7 +54,7 @@ class Node:
     def expand(self):
         col, row, move_color = self._untried_actions.pop()
         board, color= self.state.move(col, row)
-        child_node = Node(State(board, color), self.player_color, parent=self, parent_action=(col, row, move_color))
+        child_node = Node(State(board, color), self.uct_player_color, parent=self, parent_action=(col, row, move_color))
 
         self.children.append(child_node)
         return child_node     
@@ -67,21 +71,23 @@ class Node:
     def rollout(self):
         current_rollout_state = copy.deepcopy(self.state)
 
-        while current_rollout_state.can_move():
-            # if not current_rollout_state.can_move():
-            #     current_rollout_state.change_color()
+        while not current_rollout_state.is_game_over():
+            if not current_rollout_state.can_move():
+                current_rollout_state.change_color()
 
             possible_moves = current_rollout_state.get_legal_actions()
             col, row, _ = self.rollout_policy(possible_moves)
             board, color = current_rollout_state.move(col, row)
             current_rollout_state = State(board, color)
 
-        return current_rollout_state.game_result(self.player_color)
+        return current_rollout_state.game_result(self.uct_player_color)
 
     '''
     Backpropagates through visited nodes and updates statistics
     '''
     def backpropagate(self, result):
+        if self.state.current_color != self.uct_player_color:
+            result = -result
         self._number_of_visits += 1.
         self._results[result] += 1.
         if self.parent:
