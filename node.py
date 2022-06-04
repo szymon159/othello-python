@@ -124,7 +124,7 @@ class Node:
         Then proceeds to expand that node.
         '''
         current_node = self
-        while current_node.state.can_move():
+        while not current_node.is_terminal_node():
             
             if not current_node.is_fully_expanded():
                 return current_node.expand()
