@@ -19,6 +19,14 @@ class Board:
             captures.extend(self.__get_captures_in_direction(col, row, direction, color))
         return captures
 
+    def get_legal_actions(self, player_color: PlayerColor):
+        moves = []
+        for i in range(self.COLS):
+            for j in range(self.ROWS):
+                if self.evaluate_move(i, j, player_color) > 0:
+                    moves.append((i,j,player_color))
+        return moves
+
     def refresh_result(self):
         self.points[PlayerColor.BLACK] = self.points[PlayerColor.WHITE] = 0
         for i in range(self.COLS):

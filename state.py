@@ -29,12 +29,7 @@ class State:
         '''
         Returns all legal actions for player
         '''
-        moves = []
-        for i in range(self.board.COLS):
-            for j in range(self.board.ROWS):
-                if self.board.evaluate_move(i, j, self.current_color) > 0:
-                    moves.append((i,j,self.current_color))
-        return moves
+        return self.board.get_legal_actions(self.current_color)
 
     # '''
     # Performs a specified move
