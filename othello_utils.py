@@ -13,3 +13,8 @@ class Direction(Enum):
 class PlayerColor(Enum):
     BLACK = -1
     WHITE = 1
+
+class MCTSVersion(Enum):
+    UCT = auto()
+    UCB1_TUNED = auto()
+    UCT_GROUPING = auto()

@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import random
 import time
+import numpy as np
 
 from board import Board
 from othello_utils import PlayerColor
@@ -19,8 +20,6 @@ class UserPlayer(Player):
 
 class RandomPlayer(Player):
     def get_next_move(self, board_copy: Board) -> tuple[int, int]:
-        while True:
-            col, row = random.randint(0, board_copy.COLS - 1), random.randint(0, board_copy.ROWS - 1)
-            if board_copy.evaluate_move(col, row, self.color) > 0:
-                time.sleep(2)
-                return (col, row)
+        moves = board_copy.get_legal_actions(self.color)
+        col, row, _ = moves[np.random.randint(len(moves))]
+        return (col, row)
