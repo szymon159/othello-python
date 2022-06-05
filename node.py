@@ -6,6 +6,9 @@ import numpy as np
 from othello_utils import PlayerColor, MCTSVersion
 from state import AlphaBetaState, State
 
+def myCounter():
+  myCounter.counter += 1
+
 class Node:
     def __init__(self, state: State, color: PlayerColor, parent = None, parent_action: tuple[int, int, PlayerColor] = None):
         self.state = state
@@ -36,6 +39,7 @@ class MCTSNode(Node):
     def __init__(self, state: State, color: PlayerColor, seed: int, parent=None, parent_action: tuple[int, int, PlayerColor] = None, version: MCTSVersion = MCTSVersion.UCT):
         super().__init__(state, color, parent, parent_action)
         self.version = version
+        self.reward_list = []
         self._children = []
         self._number_of_visits = 0
         self._results = defaultdict(int)
@@ -43,12 +47,32 @@ class MCTSNode(Node):
         self._results[0] = 0
         self._results[-1] = 0
         self._untried_actions = None
-        self._untried_actions = self.untried_actions()
-        self._reward_list = []
+        self._untried_actions = self._get_untried_actions()
         self._random_seed = seed
         self._random = Random(self._random_seed)
+        
+    def best_action(self, simulation_count) -> tuple[int, int]:      
+        '''
+        Returns best action for node
+        ''' 
+        myCounter.counter = 0
+        for i in range(simulation_count):
+            #print(f'Iteration {i}')
+            myCounter()
+            self._iteration_count = i + 1
+            v = self._tree_policy()
+            reward = v._rollout()
+            v._backpropagate(reward)
+        
+        return self._best_child_simple()           
 
-    def best_action(self, simulation_count: int) -> tuple[int, int]:
+    def get_iteration_count(self):
+        if self.parent == None:
+            return self._iteration_count
+        else:
+            return self.get_iteration_count()
+            
+    def _get_untried_actions(self):
         '''
         Returns best action for node
         '''
@@ -86,18 +110,24 @@ class MCTSNode(Node):
         '''
         return self._number_of_visits
 
-    def expand(self) -> "MCTSNode":
+    def _expand(self) -> "MCTSNode":
         '''
         Expands the tree towards a random unexplored child
         '''
         col, row, move_color = self._untried_actions.pop()
         board, color= self.state.move(col, row)
-        child_node = MCTSNode(State(board, color), self.player_color, self._random_seed, parent=self, parent_action=(col, row, move_color))
+        child_node = Node(State(board, color), self.uct_player_color, parent=self, parent_action=(col, row, move_color), version=self.version)
 
         self._children.append(child_node)
-        return child_node
+        return child_node     
 
-    def rollout(self) -> int:
+    def _is_terminal_node(self):
+        '''
+        Returns True if current node is terminal (is a leaf node)
+        '''
+        return self.state.is_game_over()
+
+    def _rollout(self)-> int:
         '''
         Simulate the game from node
         '''
@@ -108,13 +138,13 @@ class MCTSNode(Node):
                 current_rollout_state.change_color()
 
             possible_moves = current_rollout_state.get_legal_actions()
-            col, row, _ = self.rollout_policy(possible_moves)
+            col, row, _ = self._rollout_policy(possible_moves)
             board, color = current_rollout_state.move(col, row)
             current_rollout_state = State(board, color)
 
         return current_rollout_state.game_result(self.player_color)
 
-    def backpropagate(self, result):
+    def _backpropagate(self, result):
         '''
         Backpropagates through visited nodes and updates statistics
         '''
@@ -122,22 +152,29 @@ class MCTSNode(Node):
             result = -result
         self._number_of_visits += 1.
         self._results[result] += 1.
+        self.reward_list.append(result)
         if self.parent:
-            self.parent.backpropagate(result)
+            self.parent._backpropagate(result) 
 
-    def is_fully_expanded(self) -> bool:
+    def _is_fully_expanded(self) -> bool:
         '''
         Returns True if all children of node have been expanded
         '''
         return len(self._untried_actions) == 0
+
 
     def best_child(self, c_param=1) -> "MCTSNode":
         '''
         Returns the most promising child using the formula specified by version
         '''
         if self.version == MCTSVersion.UCT:
-            choices_weights = [(c.valuate() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
-        return self._children[np.argmax(choices_weights)]
+            choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
+        if self.version == MCTSVersion.UCB1_TUNED:
+            v = [np.sum([x**2 for x in c.reward_list])/c.n() - (c.q()/c.n())**2 + np.sqrt(2*np.log(myCounter.counter) / c.n()) for c in self._children]
+            c_params = [np.sqrt(np.min([1/4, v_i])) for v_i in v]
+            choices_weights = [(c.q() / c.n()) + c_params[i] * np.sqrt((2*np.log(self.n()) / c.n()))  for i, c in enumerate(self._children, start=0)]
+            
+        return self._children[np.argmax(choices_weights)]     
 
     def best_child_simple(self) -> "MCTSNode":
         '''
@@ -146,7 +183,7 @@ class MCTSNode(Node):
         choices_weights = [(c.valuate() / c.n())  for c in self._children]
         return self._children[np.argmax(choices_weights)]
 
-    def rollout_policy(self, possible_moves: list[tuple[int, int, PlayerColor]]) -> tuple[int, int, PlayerColor]:
+    def _rollout_policy(self, possible_moves: list[tuple[int, int, PlayerColor]]) -> tuple[int, int, PlayerColor]:
         '''
         Returns random move
         '''
@@ -158,12 +195,12 @@ class MCTSNode(Node):
         Then proceeds to expand that node.
         '''
         current_node = self
-        while not current_node.is_terminal_node():
-
-            if not current_node.is_fully_expanded():
-                return current_node.expand()
+        while not current_node._is_terminal_node():
+            
+            if not current_node._is_fully_expanded():
+                return current_node._expand()
             else:
-                current_node = current_node.best_child(c_param= np.sqrt(2))
+                current_node = current_node._best_child(c_param= np.sqrt(2))
 
         return current_node
 

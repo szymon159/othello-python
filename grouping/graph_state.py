@@ -1,13 +1,19 @@
+from collections import defaultdict
 import copy
 from board import Board
+from othello_utils import PlayerColor
 import numpy as np
-from othello_utils import HEURISTIC_WEIGHTS, PlayerColor
 
-class State:
+class GraphState:
     def __init__(self, board: Board, color: PlayerColor):
         self.current_color = color
         self.board = board
-
+        self.number_of_visits = 0
+        self.results = defaultdict(int)
+        self.results[1] = 0
+        self.results[0] = 0
+        self.results[-1] = 0
+        
     def is_game_over(self):
         '''
         Returns True if game is over
@@ -26,11 +32,18 @@ class State:
         '''
         self.current_color = PlayerColor(-self.current_color.value)
 
-    def get_legal_actions(self) -> list[tuple[int, int, PlayerColor]]:
+    def get_legal_actions(self):
         '''
         Returns all legal actions for player
         '''
-        return [(col, row, self.current_color) for (col, row) in self.board.get_legal_actions(self.current_color)]
+        return self.board.get_legal_actions(self.current_color)
+
+    # '''
+    # Performs a specified move
+    # '''
+    # def move(self, col, row):
+    #     self.board.move(col, row, self.current_color)
+    #     return State(copy.deepcopy(self.board), PlayerColor(-self.current_color.value)
 
     def move(self, col, row):
         '''
@@ -41,35 +54,26 @@ class State:
         board_copy.refresh_result()
         return board_copy, PlayerColor(-self.current_color.value)
 
-    def game_result(self, player_color: PlayerColor) -> int:
+
+    def game_result(self, player_color: PlayerColor):
         '''
         Returns 1 if game's result is players victory, -1 if it's player's loose or 0 if it's a draw
         '''
-        winner_color = self.board.get_leader()
-        if winner_color is None:
-            return 0
-        if winner_color == player_color:
+        player_points = self.board.points[player_color]
+        opponent_points = self.board.points[PlayerColor(-player_color.value)]
+        if player_points > opponent_points:
             return 1
-        return -1
+        if player_points < opponent_points:
+            return -1
+        return 0
 
     def to_string(self):
         ret_str = ''
         field = self.board.get_field()
         for i in range(self.board.COLS):
-           ret_str = ret_str.join(str(e) for e in field[i])
+           ret_str =  ret_str + ''.join(str(e) for e in field[i])
         return ret_str
 
-class AlphaBetaState(State):
-    def game_result(self, player_color: PlayerColor) -> int:
-        '''
-        Returns heuristic valuation of player's pawns in current state
-        '''
-        if self.is_game_over():
-            return self.board.points[player_color]
-
-        player_points = 0
-        for col in range(self.board.COLS):
-            for row in range(self.board.ROWS):
-                if self.board[col, row] == player_color.value:
-                    player_points += HEURISTIC_WEIGHTS[col][row]
-        return player_points
+    def rotate_board(self):
+        self.board.rotate_board()
+        return self
