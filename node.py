@@ -50,11 +50,11 @@ class MCTSNode(Node):
         self._untried_actions = self._get_untried_actions()
         self._random_seed = seed
         self._random = Random(self._random_seed)
-        
-    def best_action(self, simulation_count) -> tuple[int, int]:      
+
+    def best_action(self, simulation_count) -> tuple[int, int]:
         '''
         Returns best action for node
-        ''' 
+        '''
         myCounter.counter = 0
         for i in range(simulation_count):
             #print(f'Iteration {i}')
@@ -63,27 +63,25 @@ class MCTSNode(Node):
             v = self._tree_policy()
             reward = v._rollout()
             v._backpropagate(reward)
-        
-        return self._best_child_simple()           
+
+        return self._best_child_simple()
 
     def get_iteration_count(self):
         if self.parent == None:
             return self._iteration_count
         else:
             return self.get_iteration_count()
-            
+
     def _get_untried_actions(self):
         '''
-        Returns best action for node
+        Returns all untried actions from this node's state
         '''
-        for _ in range(simulation_count):
-            #print(f'Iteration {i}')
-            v = self._tree_policy()
-            reward = v.rollout()
-            v.backpropagate(reward)
+        self._untried_actions = self.state.get_legal_actions()
+        if len(self._untried_actions) == 0:
+            self.state.change_color()
+            self._untried_actions = self.state.get_legal_actions()
 
-        action = self.best_child_simple().parent_action
-        return (action[0], action[1])
+        return self._untried_actions
 
     def valuate(self) -> int:
         '''
@@ -116,10 +114,10 @@ class MCTSNode(Node):
         '''
         col, row, move_color = self._untried_actions.pop()
         board, color= self.state.move(col, row)
-        child_node = Node(State(board, color), self.uct_player_color, parent=self, parent_action=(col, row, move_color), version=self.version)
+        child_node = MCTSNode(State(board, color), self.player_color, self._random_seed, parent=self, parent_action=(col, row, move_color), version=self.version)
 
         self._children.append(child_node)
-        return child_node     
+        return child_node
 
     def _is_terminal_node(self):
         '''
@@ -154,7 +152,7 @@ class MCTSNode(Node):
         self._results[result] += 1.
         self.reward_list.append(result)
         if self.parent:
-            self.parent._backpropagate(result) 
+            self.parent._backpropagate(result)
 
     def _is_fully_expanded(self) -> bool:
         '''
@@ -163,20 +161,20 @@ class MCTSNode(Node):
         return len(self._untried_actions) == 0
 
 
-    def best_child(self, c_param=1) -> "MCTSNode":
+    def _best_child(self, c_param=1) -> "MCTSNode":
         '''
         Returns the most promising child using the formula specified by version
         '''
         if self.version == MCTSVersion.UCT:
-            choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
+            choices_weights = [(c.valuate() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
         if self.version == MCTSVersion.UCB1_TUNED:
-            v = [np.sum([x**2 for x in c.reward_list])/c.n() - (c.q()/c.n())**2 + np.sqrt(2*np.log(myCounter.counter) / c.n()) for c in self._children]
+            v = [np.sum([x**2 for x in c.reward_list])/c.n() - (c.valuate()/c.n())**2 + np.sqrt(2*np.log(myCounter.counter) / c.n()) for c in self._children]
             c_params = [np.sqrt(np.min([1/4, v_i])) for v_i in v]
-            choices_weights = [(c.q() / c.n()) + c_params[i] * np.sqrt((2*np.log(self.n()) / c.n()))  for i, c in enumerate(self._children, start=0)]
-            
-        return self._children[np.argmax(choices_weights)]     
+            choices_weights = [(c.valuate() / c.n()) + c_params[i] * np.sqrt((2*np.log(self.n()) / c.n()))  for i, c in enumerate(self._children, start=0)]
 
-    def best_child_simple(self) -> "MCTSNode":
+        return self._children[np.argmax(choices_weights)]
+
+    def _best_child_simple(self) -> "MCTSNode":
         '''
         Returns the best child using simple formula
         '''
@@ -196,7 +194,7 @@ class MCTSNode(Node):
         '''
         current_node = self
         while not current_node._is_terminal_node():
-            
+
             if not current_node._is_fully_expanded():
                 return current_node._expand()
             else:

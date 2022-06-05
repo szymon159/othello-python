@@ -12,24 +12,20 @@ class UCTPlayer(player.Player):
         super().__init__(color)
         self.simulation_count = simulation_count
         self.version = version
-        self._state_dict = {}
         self.seed = seed
 
     def get_next_move(self, board_copy: Board) -> tuple[int, int]:
         if self.version != MCTSVersion.UCT_GROUPING:
-            tree_root = Node(State(board_copy, self.color), self.color, self.seed, version = self.version)
+            tree_root = MCTSNode(State(board_copy, self.color), self.color, self.seed, version = self.version)
             best_action = tree_root.best_action(self.simulation_count)
             col, row, _  = best_action.parent_action
         else:
             state = GraphState(board_copy, self.color)
             state_to_str = state.to_string()
-            if check_if_in_dictionary(state, self._state_dict):
-                state = self._state_dict[state_to_str]       
-            else:
-                self._state_dict[state_to_str] = state  
+            state_dict = {state_to_str: state}
 
-            tree_root = GraphNode(GraphState(board_copy, self.color), self.color, state_dict = self._state_dict)
-            best_action = tree_root.best_action(150)
+            tree_root = GraphNode(GraphState(board_copy, self.color), self.color, state_dict = state_dict)
+            best_action = tree_root.best_action(self.simulation_count)
             col, row, _  = best_action.parent_action
 
         return (col, row)

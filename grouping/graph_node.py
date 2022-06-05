@@ -22,7 +22,7 @@ class GraphNode():
         self._untried_actions = None
         self._untried_actions = self._get_untried_actions()
 
-    def best_action(self, simulation_count):        
+    def best_action(self, simulation_count):
         '''
         Returns best action for node
         '''
@@ -32,8 +32,8 @@ class GraphNode():
             v = self._tree_policy()
             reward = v._rollout()
             v._backpropagate(reward)
-        
-        return self._best_child_simple()           
+
+        return self._best_child_simple()
 
     def _get_untried_actions(self):
         '''
@@ -62,7 +62,7 @@ class GraphNode():
 
     def _expand(self):
         '''
-        Expands the three towards a random unexplored child 
+        Expands the three towards a random unexplored child
         '''
         col, row, move_color = self._untried_actions.pop()
         board, color= self.state.move(col, row)
@@ -70,13 +70,13 @@ class GraphNode():
         state_to_str = state.to_string()
 
         if check_if_in_dictionary(state, self.state_dictionary):
-            state = self.state_dictionary[state.to_string()]       
+            state = self.state_dictionary[state.to_string()]
         else:
-            self.state_dictionary[state_to_str] = state 
+            self.state_dictionary[state_to_str] = state
 
         child_node = GraphNode(state, self.uct_player_color, self.state_dictionary, parent=self, parent_action=(col, row, move_color))
         self._children.append(child_node)
-        return child_node     
+        return child_node
 
     def _is_terminal_node(self):
         '''
@@ -110,29 +110,29 @@ class GraphNode():
         self.state.number_of_visits += 1.
         self.state.results[result] += 1.
         if self.parent:
-            self.parent._backpropagate(result) 
+            self.parent._backpropagate(result)
 
     def _is_fully_expanded(self):
         '''
         Returns True if all children of node have been expanded
         '''
-        return len(self._untried_actions) == 0       
+        return len(self._untried_actions) == 0
 
-    def _best_child(self, c_param=1):     
+    def _best_child(self, c_param=1):
         '''
         Returns the most promising child using the formula specified by version
         '''
         choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
-        return self._children[np.argmax(choices_weights)]     
+        return self._children[np.argmax(choices_weights)]
 
-    def _best_child_simple(self):     
+    def _best_child_simple(self):
         '''
         Returns the best child using simple formula
         '''
         choices_weights = [(c.q() / c.n())  for c in self._children]
-        return self._children[np.argmax(choices_weights)]   
+        return self._children[np.argmax(choices_weights)]
 
-    def _rollout_policy(self, possible_moves): 
+    def _rollout_policy(self, possible_moves):
         '''
         Returns random move
         '''
@@ -140,16 +140,16 @@ class GraphNode():
 
     def _tree_policy(self):
         '''
-        Follows best children of nodes until reaching a node that wasn't fully expanded. 
+        Follows best children of nodes until reaching a node that wasn't fully expanded.
         Then proceeds to expand that node.
         '''
         current_node = self
         while not current_node._is_terminal_node():
-            
+
             if not current_node._is_fully_expanded():
                 return current_node._expand()
             else:
                 current_node = current_node._best_child(c_param= np.sqrt(2))
 
-        return current_node    
+        return current_node
 

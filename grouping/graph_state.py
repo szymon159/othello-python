@@ -13,7 +13,7 @@ class GraphState:
         self.results[1] = 0
         self.results[0] = 0
         self.results[-1] = 0
-        
+
     def is_game_over(self):
         '''
         Returns True if game is over
@@ -32,18 +32,11 @@ class GraphState:
         '''
         self.current_color = PlayerColor(-self.current_color.value)
 
-    def get_legal_actions(self):
+    def get_legal_actions(self) -> list[tuple[int, int, PlayerColor]]:
         '''
         Returns all legal actions for player
         '''
-        return self.board.get_legal_actions(self.current_color)
-
-    # '''
-    # Performs a specified move
-    # '''
-    # def move(self, col, row):
-    #     self.board.move(col, row, self.current_color)
-    #     return State(copy.deepcopy(self.board), PlayerColor(-self.current_color.value)
+        return [(col, row, self.current_color) for (col, row) in self.board.get_legal_actions(self.current_color)]
 
     def move(self, col, row):
         '''
