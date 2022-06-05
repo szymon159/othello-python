@@ -52,6 +52,13 @@ class Board:
         self.__field[col][row] = color.value
         return True
 
+    def get_leader(self) -> PlayerColor:
+        if self.points[PlayerColor.BLACK] == self.points[PlayerColor.WHITE]:
+            return None
+        if self.points[PlayerColor.BLACK] > self.points[PlayerColor.WHITE]:
+            return PlayerColor.BLACK
+        return PlayerColor.WHITE
+
     def __init_board(self) -> None:
         self.__field = [[0 for _ in range(self.ROWS)] for _ in range (self.COLS)]
         center_row, center_col = self.ROWS // 2, self.COLS // 2

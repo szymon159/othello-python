@@ -6,7 +6,7 @@ from uct_player import UCTPlayer
 
 def main():
     players = [RandomPlayer(PlayerColor.BLACK), UCTPlayer(PlayerColor.WHITE)]
-    game = OthelloGame(players)
+    game = OthelloGame(players, False)
     if not game.run_game():
         pass
 

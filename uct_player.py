@@ -1,11 +1,11 @@
 from board import Board
 from othello_utils import PlayerColor, MCTSVersion
+from player import Player
 from state import State
 from node import Node
-import player
 
-class UCTPlayer(player.Player):
-    def __init__(self, color: PlayerColor, simulation_count: int = 500, version: MCTSVersion = MCTSVersion.UCT) -> None:
+class UCTPlayer(Player):
+    def __init__(self, color: PlayerColor, simulation_count: int = 200, version: MCTSVersion = MCTSVersion.UCT) -> None:
         super().__init__(color)
         self.simulation_count = simulation_count
         self.version = version
