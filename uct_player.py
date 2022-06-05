@@ -1,5 +1,6 @@
 from board import Board
 from othello_utils import PlayerColor, MCTSVersion
+from player import Player
 from state import State
 from node import MCTSNode
 import player

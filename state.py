@@ -44,9 +44,10 @@ class State:
         '''
         Returns 1 if game's result is players victory, -1 if it's player's loose or 0 if it's a draw
         '''
-        player_points = self.board.points[player_color]
-        opponent_points = self.board.points[PlayerColor(-player_color.value)]
-        if player_points > opponent_points:
+        winner_color = self.board.get_leader()
+        if winner_color is None:
+            return 0
+        if winner_color == player_color:
             return 1
         if player_points < opponent_points:
             return -1
@@ -66,3 +67,4 @@ class AlphaBetaState(State):
                 if self.board[col, row] == player_color.value:
                     player_points += HEURISTIC_WEIGHTS[col][row]
         return player_points
+
