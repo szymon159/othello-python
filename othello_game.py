@@ -11,40 +11,51 @@ class OthelloGame:
     __WIDTH, __HEIGHT = 800, 600
     __BG_COLOR = (0,100,0)
 
-    def __init__(self, players: list[Player]) -> None:
+    def __init__(self, players: list[Player], open_visualisation: bool = True) -> None:
         self.__players = {player.color.value: player for player in players}
         self.__current_player = self.__players[PlayerColor.BLACK.value]
         self.__is_move_in_progress = False
         self.__is_game_in_progress = False
         self.__board = Board()
         self.__field_size = self.__HEIGHT / self.__board.ROWS
-        pygame.init()
-        pygame.display.set_caption("Othello")
-        self.__font = pygame.font.SysFont('comicsans', 30)
-        self.__window = pygame.display.set_mode((self.__WIDTH, self.__HEIGHT))
+        self.__is_board_displayed = open_visualisation or any(isinstance(player, UserPlayer) for player in players)
+        if self.__is_board_displayed:
+            pygame.init()
+            pygame.display.set_caption("Othello")
+            self.__font = pygame.font.SysFont('comicsans', 30)
+            self.__window = pygame.display.set_mode((self.__WIDTH, self.__HEIGHT))
 
     def run_game(self) -> None:
         self.__is_game_in_progress = True
         fps_clock = pygame.time.Clock()
         while True:
-            # Process events
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.__is_move_in_progress = False # This will help stopping background worker if still running
-                    return False
-                if event.type == pygame.MOUSEBUTTONDOWN and isinstance(self.__current_player, UserPlayer) and self.__is_move_in_progress:
-                    self.__get_user_move(pygame.mouse.get_pos())
-            # Get next move from AI
-            if not any(self.__board.can_move(player.color) for player in self.__players.values()):
+            # Process events, but only if board is displayed
+            if self.__is_board_displayed:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.__is_move_in_progress = False # This will help stopping background worker if still running
+                        return False
+                    if event.type == pygame.MOUSEBUTTONDOWN and isinstance(self.__current_player, UserPlayer) and self.__is_move_in_progress:
+                        self.__get_user_move(pygame.mouse.get_pos())
+            # Check if game is finished and no move is pending
+            if not self.__is_move_in_progress and not self.__is_any_move_possible():
                 self.__is_game_in_progress = False
                 self.__is_move_in_progress = False
-            if not self.__is_move_in_progress:
+                if not self.__is_board_displayed:
+                    self.__print_final_result()
+                    break
+            # Wait for next move, but only if game is not finished and no move is pending
+            if self.__is_game_in_progress and not self.__is_move_in_progress:
                 self.__get_next_move()
-            # Draw
-            self.draw()
+            # Draw, but only if board is displayed
+            if self.__is_board_displayed:
+                self.__draw()
             fps_clock.tick(self.__FPS)
 
-    def draw(self) -> None:
+    def __is_any_move_possible(self) -> bool:
+        return any(self.__board.can_move(player.color) for player in self.__players.values())
+
+    def __draw(self) -> None:
         self.__window.fill(self.__BG_COLOR)
         self.__draw_board()
         self.__draw_results()
@@ -100,6 +111,8 @@ class OthelloGame:
             return
         if not self.__is_move_in_progress or not self.__is_game_in_progress:
             return
+        if not self.__is_board_displayed:
+            print(f'It is {self.__current_player.color.name}\'s turn now...')
         thread = threading.Thread(target=self.__get_bot_move)
         thread.start()
 
@@ -109,6 +122,8 @@ class OthelloGame:
             self.__move(col, row)
 
     def __get_user_move(self, mouse_pos: tuple[int, int]) -> None:
+        if not isinstance(self.__current_player, UserPlayer):
+            return
         col, row = self.__get_field_from_mouse_pos(mouse_pos)
         if col < 0 or row < 0:
             return
@@ -124,6 +139,20 @@ class OthelloGame:
     def __move(self, col: int, row: int) -> None:
         if not self.__board.move(col, row, self.__current_player.color):
             return
+        if not self.__is_board_displayed:
+            print(f'Move done by {self.__current_player.color.name} player ({type(self.__current_player).__name__}): COL: {col}, ROW: {row}.')
+            self.__board.refresh_result()
+            print(f'Current result: BLACK : {self.__board.points[PlayerColor.BLACK]}, WHITE: {self.__board.points[PlayerColor.WHITE]}.\n')
         if self.__board.can_move(self.__players[-self.__current_player.color.value].color):
             self.__current_player = self.__players[-self.__current_player.color.value]
         self.__is_move_in_progress = False
+
+
+    def __print_final_result(self):
+        print(f'Game over! Final result: BLACK : {self.__board.points[PlayerColor.BLACK]}, WHITE: {self.__board.points[PlayerColor.WHITE]}.')
+        winner_color = self.__board.get_leader()
+        if winner_color is None:
+            print('Draw! There is not winner! Congrats for both players! \n')
+        else:
+            winner = self.__players[winner_color.value]
+            print(f'{winner.color.name} ({type(winner).__name__}) is the winner! Congrats!\n')

@@ -1,7 +1,5 @@
 from abc import abstractmethod
-import random
-import time
-import numpy as np
+from random import Random
 
 from board import Board
 from othello_utils import PlayerColor
@@ -19,7 +17,11 @@ class UserPlayer(Player):
         raise NotImplementedError('Next move can be determined only for bots')
 
 class RandomPlayer(Player):
+    def __init__(self, color: PlayerColor, seed: int) -> None:
+        super().__init__(color)
+        self.__random = Random(seed)
+
     def get_next_move(self, board_copy: Board) -> tuple[int, int]:
         moves = board_copy.get_legal_actions(self.color)
-        col, row, _ = moves[np.random.randint(len(moves))]
+        col, row = moves[self.__random.randint(0, len(moves) - 1)]
         return (col, row)

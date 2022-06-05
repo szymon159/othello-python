@@ -19,15 +19,15 @@ class Board:
             captures.extend(self.__get_captures_in_direction(col, row, direction, color))
         return captures
 
-    def get_legal_actions(self, player_color: PlayerColor):
+    def get_legal_actions(self, player_color: PlayerColor) -> list[tuple[int, int]]:
         moves = []
         for i in range(self.COLS):
             for j in range(self.ROWS):
                 if self.evaluate_move(i, j, player_color) > 0:
-                    moves.append((i,j,player_color))
+                    moves.append((i,j))
         return moves
 
-    def refresh_result(self):
+    def refresh_result(self) -> None:
         self.points[PlayerColor.BLACK] = self.points[PlayerColor.WHITE] = 0
         for i in range(self.COLS):
             for j in range(self.ROWS):
@@ -57,6 +57,13 @@ class Board:
 
     def rotate_board(self):
         self.__field = rotated(self.__field)
+
+    def get_leader(self) -> PlayerColor:
+        if self.points[PlayerColor.BLACK] == self.points[PlayerColor.WHITE]:
+            return None
+        if self.points[PlayerColor.BLACK] > self.points[PlayerColor.WHITE]:
+            return PlayerColor.BLACK
+        return PlayerColor.WHITE
 
     def __init_board(self) -> None:
         self.__field = [[0 for _ in range(self.ROWS)] for _ in range (self.COLS)]
