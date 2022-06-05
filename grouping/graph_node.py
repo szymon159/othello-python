@@ -1,20 +1,18 @@
 from collections import defaultdict
 import copy
+from os import stat
 import numpy as np
-from othello_utils import PlayerColor, MCTSVersion
+from othello_utils import PlayerColor, check_if_in_dictionary
 from state import State
+from grouping.graph_state import GraphState
 
-def myCounter():
-  myCounter.counter += 1
-
-class Node:
-    def __init__(self, state: State, color: PlayerColor, parent=None, parent_action=None, version: MCTSVersion = MCTSVersion.UCT):
+class GraphNode():
+    def __init__(self, state: GraphState, color: PlayerColor, state_dict, parent=None, parent_action=None):
         self.state = state
         self.uct_player_color = color
+        self.state_dictionary = state_dict
         self.parent = parent
         self.parent_action = parent_action
-        self.version = version
-        self.reward_list = []
         self._children = []
         self._number_of_visits = 0
         self._results = defaultdict(int)
@@ -27,11 +25,9 @@ class Node:
     def best_action(self, simulation_count):        
         '''
         Returns best action for node
-        ''' 
-        myCounter.counter = 0
+        '''
         for i in range(simulation_count):
             #print(f'Iteration {i}')
-            myCounter()
             self._iteration_count = i + 1
             v = self._tree_policy()
             reward = v._rollout()
@@ -39,12 +35,6 @@ class Node:
         
         return self._best_child_simple()           
 
-    def get_iteration_count(self):
-        if self.parent == None:
-            return self._iteration_count
-        else:
-            return self.get_iteration_count()
-            
     def _get_untried_actions(self):
         '''
         Returns all untried actions from this node's state
@@ -60,15 +50,15 @@ class Node:
         '''
         Returns a difference between the amount of wins and losses
         '''
-        wins = self._results[1]
-        loses = self._results[-1]
+        wins = self.state.results[1]
+        loses = self.state.results[-1]
         return wins - loses
 
     def n(self):
         '''
         Returns an amount of times the node was visited
         '''
-        return self._number_of_visits
+        return self.state.number_of_visits
 
     def _expand(self):
         '''
@@ -76,8 +66,15 @@ class Node:
         '''
         col, row, move_color = self._untried_actions.pop()
         board, color= self.state.move(col, row)
-        child_node = Node(State(board, color), self.uct_player_color, parent=self, parent_action=(col, row, move_color), version=self.version)
+        state = GraphState(board, color)
+        state_to_str = state.to_string()
 
+        if check_if_in_dictionary(state, self.state_dictionary):
+            state = self.state_dictionary[state.to_string()]       
+        else:
+            self.state_dictionary[state_to_str] = state 
+
+        child_node = GraphNode(state, self.uct_player_color, self.state_dictionary, parent=self, parent_action=(col, row, move_color))
         self._children.append(child_node)
         return child_node     
 
@@ -110,9 +107,8 @@ class Node:
         '''
         if self.state.current_color != self.uct_player_color:
             result = -result
-        self._number_of_visits += 1.
-        self._results[result] += 1.
-        self.reward_list.append(result)
+        self.state.number_of_visits += 1.
+        self.state.results[result] += 1.
         if self.parent:
             self.parent._backpropagate(result) 
 
@@ -126,13 +122,7 @@ class Node:
         '''
         Returns the most promising child using the formula specified by version
         '''
-        if self.version == MCTSVersion.UCT:
-            choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
-        if self.version == MCTSVersion.UCB1_TUNED:
-            v = [np.sum([x**2 for x in c.reward_list])/c.n() - (c.q()/c.n())**2 + np.sqrt(2*np.log(myCounter.counter) / c.n()) for c in self._children]
-            c_params = [np.sqrt(np.min([1/4, v_i])) for v_i in v]
-            choices_weights = [(c.q() / c.n()) + c_params[i] * np.sqrt((2*np.log(self.n()) / c.n()))  for i, c in enumerate(self._children, start=0)]
-            
+        choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
         return self._children[np.argmax(choices_weights)]     
 
     def _best_child_simple(self):     

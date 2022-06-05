@@ -1,5 +1,5 @@
 from typing import Generator
-from othello_utils import Direction, PlayerColor
+from othello_utils import Direction, PlayerColor, rotated
 
 class Board:
     ROWS, COLS = 8, 8
@@ -51,6 +51,12 @@ class Board:
             self.__field[capture[0]][capture[1]] = color.value
         self.__field[col][row] = color.value
         return True
+
+    def get_field(self):
+        return self.__field
+
+    def rotate_board(self):
+        self.__field = rotated(self.__field)
 
     def __init_board(self) -> None:
         self.__field = [[0 for _ in range(self.ROWS)] for _ in range (self.COLS)]

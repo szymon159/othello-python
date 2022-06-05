@@ -1,13 +1,19 @@
+from collections import defaultdict
 import copy
 from board import Board
 from othello_utils import PlayerColor
 import numpy as np
 
-class State:
+class GraphState:
     def __init__(self, board: Board, color: PlayerColor):
         self.current_color = color
         self.board = board
-
+        self.number_of_visits = 0
+        self.results = defaultdict(int)
+        self.results[1] = 0
+        self.results[0] = 0
+        self.results[-1] = 0
+        
     def is_game_over(self):
         '''
         Returns True if game is over
@@ -65,5 +71,9 @@ class State:
         ret_str = ''
         field = self.board.get_field()
         for i in range(self.board.COLS):
-           ret_str = ret_str.join(str(e) for e in field[i])
+           ret_str =  ret_str + ''.join(str(e) for e in field[i])
         return ret_str
+
+    def rotate_board(self):
+        self.board.rotate_board()
+        return self
