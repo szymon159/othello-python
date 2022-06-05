@@ -1,9 +1,10 @@
 {
+    "files.trimTrailingWhitespace": true,
     "python.languageServer": "Pylance",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
     "python.linting.pylintArgs": [
         "--max-line-length=190",
         "--disable=C0114,C0115,C0116"
-    ]
+    ],
 }
