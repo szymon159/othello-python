@@ -6,9 +6,6 @@ import numpy as np
 from othello_utils import PlayerColor, MCTSVersion
 from state import AlphaBetaState, State
 
-def myCounter():
-  myCounter.counter += 1
-
 class Node:
     def __init__(self, state: State, color: PlayerColor, parent = None, parent_action: tuple[int, int, PlayerColor] = None):
         self.state = state
@@ -55,10 +52,8 @@ class MCTSNode(Node):
         '''
         Returns best action for node
         '''
-        myCounter.counter = 0
         for i in range(simulation_count):
             #print(f'Iteration {i}')
-            myCounter()
             self._iteration_count = i + 1
             v = self._tree_policy()
             reward = v._rollout()
@@ -90,17 +85,6 @@ class MCTSNode(Node):
         wins = self._results[1]
         loses = self._results[-1]
         return wins - loses
-
-    def untried_actions(self) -> list[tuple[int, int, PlayerColor]]:
-        '''
-        Returns all untried actions from this node's state
-        '''
-        self._untried_actions = self.state.get_legal_actions()
-        if len(self._untried_actions) == 0:
-            self.state.change_color()
-            self._untried_actions = self.state.get_legal_actions()
-
-        return self._untried_actions
 
     def n(self) -> int:
         '''
@@ -165,12 +149,12 @@ class MCTSNode(Node):
         '''
         Returns the most promising child using the formula specified by version
         '''
-        if self.version == MCTSVersion.UCT:
+        if self.version == MCTSVersion.UCT or self.version == MCTSVersion.UCT_GROUPING:
             choices_weights = [(c.valuate() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
         if self.version == MCTSVersion.UCB1_TUNED:
-            v = [np.sum([x**2 for x in c.reward_list])/c.n() - (c.valuate()/c.n())**2 + np.sqrt(2*np.log(myCounter.counter) / c.n()) for c in self._children]
+            v = [np.sum([x**2 for x in c.reward_list])/c.n() - (c.valuate()/c.n())**2 + np.sqrt(2*np.log(self.n()) / c.n()) for c in self._children]
             c_params = [np.sqrt(np.min([1/4, v_i])) for v_i in v]
-            choices_weights = [(c.valuate() / c.n()) + c_params[i] * np.sqrt((2*np.log(self.n()) / c.n()))  for i, c in enumerate(self._children, start=0)]
+            choices_weights = [(c.valuate() / c.n()) + c_params[i] * np.sqrt((np.log(self.n()) / c.n()))  for i, c in enumerate(self._children, start=0)]
 
         return self._children[np.argmax(choices_weights)]
 
