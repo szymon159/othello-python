@@ -1,9 +1,4 @@
-from collections import defaultdict
-import copy
-from os import stat
-import numpy as np
 from othello_utils import PlayerColor, check_if_in_dictionary
-from state import State
 from grouping.graph_state import GraphState
 from node import MCTSNode
 

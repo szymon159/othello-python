@@ -1,9 +1,7 @@
 from collections import defaultdict
-import copy
 from state import State
 from board import Board
 from othello_utils import PlayerColor
-import numpy as np
 
 class GraphState(State):
     def __init__(self, board: Board, color: PlayerColor):

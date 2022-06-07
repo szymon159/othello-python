@@ -1,6 +1,5 @@
 import copy
 from board import Board
-import numpy as np
 from othello_utils import HEURISTIC_WEIGHTS, PlayerColor
 
 class State:
@@ -56,7 +55,7 @@ class State:
         ret_str = ''
         field = self.board.get_field()
         for i in range(self.board.COLS):
-           ret_str = ret_str.join(str(e) for e in field[i])
+            ret_str = ret_str.join(str(e) for e in field[i])
         return ret_str
 
 class AlphaBetaState(State):
