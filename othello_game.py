@@ -11,7 +11,7 @@ class OthelloGame:
     __WIDTH, __HEIGHT = 800, 600
     __BG_COLOR = (0,100,0)
 
-    def __init__(self, players: list[Player], open_visualization: bool = True) -> None:
+    def __init__(self, players: list[Player], open_visualization: bool = True, print_game_events: bool = False) -> None:
         self.__players = {player.color.value: player for player in players}
         self.__current_player = self.__players[PlayerColor.BLACK.value]
         self.__is_move_in_progress = False
@@ -19,6 +19,7 @@ class OthelloGame:
         self.__board = Board()
         self.__field_size = self.__HEIGHT / self.__board.ROWS
         self.__is_board_displayed = open_visualization or any(isinstance(player, UserPlayer) for player in players)
+        self.__print_game_events = print_game_events
         if self.__is_board_displayed:
             pygame.init()
             pygame.display.set_caption("Othello")
@@ -41,9 +42,10 @@ class OthelloGame:
             if not self.__is_move_in_progress and not self.__is_any_move_possible():
                 self.__is_game_in_progress = False
                 self.__is_move_in_progress = False
-                if not self.__is_board_displayed:
+                if self.__print_game_events:
                     self.__print_final_result()
-                    break
+                if not self.__is_board_displayed:
+                    return False
             # Wait for next move, but only if game is not finished and no move is pending
             if self.__is_game_in_progress and not self.__is_move_in_progress:
                 self.__get_next_move()
@@ -51,6 +53,9 @@ class OthelloGame:
             if self.__is_board_displayed:
                 self.__draw()
             fps_clock.tick(self.__FPS)
+
+    def get_result(self) -> dict[PlayerColor, int]:
+        return self.__board.points
 
     def __is_any_move_possible(self) -> bool:
         return any(self.__board.can_move(player.color) for player in self.__players.values())
@@ -111,7 +116,7 @@ class OthelloGame:
             return
         if not self.__is_move_in_progress or not self.__is_game_in_progress:
             return
-        if not self.__is_board_displayed:
+        if self.__print_game_events:
             print(f'It is {self.__current_player.color.name}\'s turn now...')
         thread = threading.Thread(target=self.__get_bot_move)
         thread.start()
@@ -139,10 +144,12 @@ class OthelloGame:
     def __move(self, col: int, row: int) -> None:
         if not self.__board.move(col, row, self.__current_player.color):
             return
-        if not self.__is_board_displayed:
-            print(f'Move done by {self.__current_player.color.name} player ({type(self.__current_player).__name__}): COL: {col}, ROW: {row}.')
+        if self.__print_game_events:
+            print(f'Move done by {self.__current_player}: COL: {col}, ROW: {row}.')
             self.__board.refresh_result()
             print(f'Current result: BLACK : {self.__board.points[PlayerColor.BLACK]}, WHITE: {self.__board.points[PlayerColor.WHITE]}.\n')
+        elif not self.__is_board_displayed:
+            self.__board.refresh_result()
         if self.__board.can_move(self.__players[-self.__current_player.color.value].color):
             self.__current_player = self.__players[-self.__current_player.color.value]
         self.__is_move_in_progress = False
@@ -155,4 +162,4 @@ class OthelloGame:
             print('Draw! There is not winner! Congrats for both players! \n')
         else:
             winner = self.__players[winner_color.value]
-            print(f'{winner.color.name} ({type(winner).__name__}) is the winner! Congrats!\n')
+            print(f'{winner} is the winner! Congrats!\n')
