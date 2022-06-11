@@ -1,6 +1,7 @@
 import copy
 import math
 import threading
+from timeit import default_timer as timer
 import pygame
 from board import Board
 from othello_utils import PlayerColor
@@ -20,6 +21,8 @@ class OthelloGame:
         self.__field_size = self.__HEIGHT / self.__board.ROWS
         self.__is_board_displayed = open_visualization or any(isinstance(player, UserPlayer) for player in players)
         self.__print_game_events = print_game_events
+        self.__move_times = {player.color: 0 for player in players}
+        self.__time_start = 0
         if self.__is_board_displayed:
             pygame.init()
             pygame.display.set_caption("Othello")
@@ -56,6 +59,9 @@ class OthelloGame:
 
     def get_result(self) -> dict[PlayerColor, int]:
         return self.__board.points
+
+    def get_times(self) -> dict[PlayerColor, int]:
+        return self.__move_times
 
     def __is_any_move_possible(self) -> bool:
         return any(self.__board.can_move(player.color) for player in self.__players.values())
@@ -118,6 +124,7 @@ class OthelloGame:
             return
         if self.__print_game_events:
             print(f'It is {self.__current_player.color.name}\'s turn now...')
+        self.__time_start = timer()
         thread = threading.Thread(target=self.__get_bot_move)
         thread.start()
 
@@ -150,10 +157,10 @@ class OthelloGame:
             print(f'Current result: BLACK : {self.__board.points[PlayerColor.BLACK]}, WHITE: {self.__board.points[PlayerColor.WHITE]}.\n')
         elif not self.__is_board_displayed:
             self.__board.refresh_result()
+        self.__move_times[self.__current_player.color] += 1000 * (timer() - self.__time_start)
         if self.__board.can_move(self.__players[-self.__current_player.color.value].color):
             self.__current_player = self.__players[-self.__current_player.color.value]
         self.__is_move_in_progress = False
-
 
     def __print_final_result(self):
         print(f'Game over! Final result: BLACK : {self.__board.points[PlayerColor.BLACK]}, WHITE: {self.__board.points[PlayerColor.WHITE]}.')
