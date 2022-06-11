@@ -17,9 +17,9 @@ class PlayerConfig():
         SIMPLE_HEURISTIC = "simple_heuristic"
         HEURISTIC = "heuristic"
         RANDOM = "random"
-        MCTS = "MCTS"
-        MCTS_UCB = "MCTS_UCB"
-        MCTS_GROUPING = "MCTS_grouping"
+        MCTS = "mcts_uct"
+        MCTS_UCB = "mcts_ucb1"
+        MCTS_GROUPING = "mcts_grouping"
 
     class PlayerColor(Enum):
         BLACK = "black"

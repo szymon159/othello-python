@@ -2,20 +2,17 @@
     "$schema": "./config-schema.json",
     "game_type": "tournament",
     "output_file": "./results.txt",
-    "show_visualization": false,
-    "game_repetitions": 5,
-    "heurstic_simulation_depth": 5,
-    "mcts_simulation_count": 300,
+    "show_visualization": true,
+    "game_repetitions": 1,
+    "heurstic_simulation_depth": 6,
+    "mcts_simulation_count": 500,
     "seed": 666,
     "players": [
         {
-            "player_type": "simple_heuristic"
-        },
-        {
-            "player_type": "random"
-        },
-        {
             "player_type": "heuristic"
+        },
+        {
+            "player_type": "mcts_uct"
         }
     ]
 }

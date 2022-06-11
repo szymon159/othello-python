@@ -53,7 +53,7 @@
                     "player_type": {
                         "description": "Type of the player - algorithm to use for bot or \"user\" for real player.",
                         "type": "string",
-                        "enum": ["user", "simple_heuristic", "heuristic", "random", "MCTS", "MCTS_UCB", "MCTS_grouping"]
+                        "enum": ["user", "simple_heuristic", "heuristic", "random", "mcts_uct", "mcts_ucb1", "mcts_grouping"]
                     },
                     "player_color": {
                         "description": "Color of player's pawns. Ignored for tournament mode or if not set for every player.",

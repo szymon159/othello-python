@@ -13,6 +13,7 @@ class UCTPlayer(player.Player):
         self.version = version
         self.seed = seed
         self.state_dict = {}
+
     def get_next_move(self, board_copy: Board) -> tuple[int, int]:
         version_tmp = self.version
         if version_tmp == MCTSVersion.UCT_GROUPING:
@@ -33,3 +34,6 @@ class UCTPlayer(player.Player):
             col, row, _  = best_action.parent_action
 
         return (col, row)
+
+    def __str__(self) -> str:
+        return f'{type(self).__name__}-{self.version.name} ({self.color.name.lower()})'
