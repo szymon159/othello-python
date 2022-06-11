@@ -1,0 +1,16 @@
+{
+    "$schema": "./config-schema.json",
+    "game_type": "match",
+    "output_file": "./results.txt",
+    "show_visualization": true,
+    "players": [
+        {
+            "player_color": "black",
+            "player_type": "user"
+        },
+        {
+            "player_color": "white",
+            "player_type": "random"
+        }
+    ]
+}

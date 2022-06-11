@@ -11,14 +11,14 @@ class OthelloGame:
     __WIDTH, __HEIGHT = 800, 600
     __BG_COLOR = (0,100,0)
 
-    def __init__(self, players: list[Player], open_visualisation: bool = True) -> None:
+    def __init__(self, players: list[Player], open_visualization: bool = True) -> None:
         self.__players = {player.color.value: player for player in players}
         self.__current_player = self.__players[PlayerColor.BLACK.value]
         self.__is_move_in_progress = False
         self.__is_game_in_progress = False
         self.__board = Board()
         self.__field_size = self.__HEIGHT / self.__board.ROWS
-        self.__is_board_displayed = open_visualisation or any(isinstance(player, UserPlayer) for player in players)
+        self.__is_board_displayed = open_visualization or any(isinstance(player, UserPlayer) for player in players)
         if self.__is_board_displayed:
             pygame.init()
             pygame.display.set_caption("Othello")
