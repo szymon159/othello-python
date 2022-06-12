@@ -8,6 +8,9 @@ class Player:
     def __init__(self, color: PlayerColor) -> None:
         self.color = color
 
+    def __str__(self) -> str:
+        return f'{type(self).__name__} ({self.color.name.lower()})'
+
     @abstractmethod
     def get_next_move(self, board_copy: Board) -> tuple[int, int]:
         raise NotImplementedError('Mehtod cannot be called from abstract class')

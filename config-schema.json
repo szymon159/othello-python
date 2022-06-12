@@ -1,0 +1,71 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Config",
+    "description": "Configuration for Othello game",
+    "type": "object",
+    "properties": {
+        "game_type": {
+            "description": "Type of the game - match for single game or tournament for set of games.",
+            "type": "string",
+            "enum": ["match", "tournament"],
+            "default": "match"
+        },
+        "game_repetitions":{
+            "description": "Number or repetitions of each game for different seeds each. Default: 1",
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+        },
+        "seed": {
+            "description": "Seed used to randomly generate next seeds for each game repetition. Default: None (random is used).",
+            "type": "integer",
+            "minimum": 1
+        },
+        "heurstic_simulation_depth":{
+            "description": "Number of levels used for alpha-beta simulation by heurstic player. Default: 10.",
+            "type": "integer",
+            "minimum": 1,
+            "default": 10
+        },
+        "mcts_simulation_count":{
+            "description": "Number of simulations run for MCTS by all MCTS-based players. Default: 500.",
+            "type": "integer",
+            "minimum": 1,
+            "default": 500
+        },
+        "show_visualization": {
+            "description": "Indicates if visualisation of games should be opened. Ignored for tournament mode. Default: true.",
+            "type": "boolean",
+            "default": "true"
+        },
+        "output_file": {
+            "description": "Path to output file which will be overwritten with games result.",
+            "type": "string"
+        },
+        "players":{
+            "description": "List of participating players.",
+            "type": "array",
+            "minItems": 2,
+            "items": {
+                "description": "Properties of each participating player.",
+                "type": "object",
+                "properties": {
+                    "player_type": {
+                        "description": "Type of the player - algorithm to use for bot or \"user\" for real player.",
+                        "type": "string",
+                        "enum": ["user", "simple_heuristic", "heuristic", "random", "mcts_uct", "mcts_ucb1", "mcts_grouping"]
+                    },
+                    "player_color": {
+                        "description": "Color of player's pawns. Ignored for tournament mode or if not set for every player.",
+                        "type": "string",
+                        "enum": ["black", "white"]
+                    }
+                },
+                "required": ["player_type"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "additionalProperties": false,
+    "required": ["players"]
+  }
