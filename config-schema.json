@@ -25,13 +25,13 @@
             "description": "Number of levels used for alpha-beta simulation by heurstic player. Default: 10.",
             "type": "integer",
             "minimum": 1,
-            "default": 10
+            "default": 6
         },
         "mcts_simulation_count":{
             "description": "Number of simulations run for MCTS by all MCTS-based players. Default: 500.",
             "type": "integer",
             "minimum": 1,
-            "default": 500
+            "default": 300
         },
         "show_visualization": {
             "description": "Indicates if visualisation of games should be opened. Ignored for tournament mode. Default: true.",

@@ -6,7 +6,7 @@ class Match():
     def __init__(self, games: list[tuple[Player, Player]]) -> None:
         self.total = [0, 0]
         self.results = []
-        self.players = (games[0][0], games[0][1])
+        self.player_names = [str(p).split(" ", maxsplit=1)[0] for p in games[0]]
         self.__games = games
 
     def get_games(self):
@@ -14,8 +14,8 @@ class Match():
             if self.total[0] < 2 and self.total[1] < 2:
                 yield [game[0], game[1]]
 
-    def add_game_result(self, result: dict[PlayerColor, int]):
-        res = (result[self.players[0].color], result[self.players[1].color])
+    def add_game_result(self, game_number: int, result: dict[PlayerColor, int]):
+        res = (result[self.__games[game_number][0].color], result[self.__games[game_number][1].color])
         self.results.append(res)
         if res[0] > res[1]:
             self.total[0] += 1
