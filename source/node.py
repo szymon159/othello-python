@@ -7,6 +7,9 @@ from othello_utils import PlayerColor, MCTSVersion
 from state import AlphaBetaState, State, GroupingGraphState
 
 class Node:
+    '''
+    Base class representing a node in a game tree. Shares logic common for all algorithms.
+    '''
     def __init__(self, state: State, color: PlayerColor, parent: "Node" = None, parent_action: tuple[int, int, PlayerColor] = None):
         self.state = state
         self.player_color = color
@@ -16,7 +19,7 @@ class Node:
     @abstractmethod
     def best_action(self, simulation_count: int) -> tuple[int, int]:
         '''
-        Returns best action for node
+        Returns best action for node.
         '''
         raise NotImplementedError('Method \"best_action\" is not implemented for base class. Use derived class instead')
 
@@ -28,11 +31,14 @@ class Node:
 
     def is_terminal_node(self) -> bool:
         '''
-        Returns True if current node is terminal (is a leaf node)
+        Returns True if current node is terminal (is a leaf node).
         '''
         return self.state.is_game_over()
 
 class MCTSNode(Node):
+    '''
+    Class representing a node in a tree for base version of MCTS algorithm. Base class for nodes used by modified algorithms.
+    '''
     def __init__(self, state: State, color: PlayerColor, seed: int, parent: "MCTSNode" = None, parent_action: tuple[int, int, PlayerColor] = None, version: MCTSVersion = MCTSVersion.UCT):
         super().__init__(state, color, parent, parent_action)
         self.parent = parent
@@ -52,7 +58,7 @@ class MCTSNode(Node):
 
     def best_action(self, simulation_count: int) -> tuple[int, int]:
         '''
-        Returns best action for node
+        Returns best action for node.
         '''
         for i in range(simulation_count):
             self._iteration_count = i + 1
@@ -63,6 +69,9 @@ class MCTSNode(Node):
         return self._best_child_simple()
 
     def get_iteration_count(self) -> int:
+        '''
+        Returns number of MCTS iterations performed so far.
+        '''
         if self.parent is None:
             return self._iteration_count
         else:
@@ -70,7 +79,7 @@ class MCTSNode(Node):
 
     def _get_untried_actions(self) -> list[tuple[int, int, PlayerColor]]:
         '''
-        Returns all untried actions from this node's state
+        Returns all untried actions from this node's state.
         '''
         self._untried_actions = self.state.get_legal_actions()
         if len(self._untried_actions) == 0:
@@ -89,7 +98,7 @@ class MCTSNode(Node):
 
     def n(self) -> int:
         '''
-        Returns an amount of times the node was visited
+        Returns how many times the node was visited
         '''
         return self._number_of_visits
 
@@ -186,6 +195,9 @@ class MCTSNode(Node):
         return current_node
 
 class AlphaBetaNode(Node):
+    '''
+    Class representing a node in a tree for alpha-beta prunning algorithm.
+    '''
     def __init__(self, state: AlphaBetaState, player_color: PlayerColor, max_depth: int, alpha: int, beta: int, parent: Node = None, parent_action: tuple[int, int, PlayerColor] = None):
         super().__init__(state, player_color, parent, parent_action)
         self.level = parent.level + 1 if isinstance(parent, AlphaBetaNode) else 0
@@ -229,6 +241,9 @@ class AlphaBetaNode(Node):
         return self.level + 1 >= self.__max_depth or super().is_terminal_node()
 
 class GroupingGraphNode(MCTSNode):
+    '''
+    Class representing a node in a tree (graph) for MCTS modification using grouping of identical states.
+    '''
     def __init__(self, state: GroupingGraphState, color: PlayerColor, state_dict, seed: int = 10, parent: "GroupingGraphNode" = None, parent_action: tuple[int, int, PlayerColor] = None):
         super().__init__(state, color, seed, parent, parent_action)
         self.state = state

@@ -7,6 +7,9 @@ from player import Player
 from state import AlphaBetaState
 
 class SimpleHeuristicPlayer(Player):
+    '''
+    Player performing all moves naively - by gaining the most points in one move.
+    '''
     def get_next_move(self, board_copy: Board) -> tuple[int, int]:
         moves = []
         for i in range(board_copy.COLS):
@@ -18,6 +21,9 @@ class SimpleHeuristicPlayer(Player):
         return moves[np.argmax(moves_values)]
 
 class AlphaBetaHeuristicPlayer(SimpleHeuristicPlayer):
+    '''
+    Player using alpha-beta prunning to determine next move.
+    '''
     def __init__(self, color: PlayerColor, simulation_depth: int = 5) -> None:
         super().__init__(color)
         self.__max_depth = simulation_depth

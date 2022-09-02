@@ -2,9 +2,12 @@ from board import Board
 from othello_utils import PlayerColor, MCTSVersion
 from state import State, GroupingGraphState
 from node import MCTSNode, GroupingGraphNode
-import player
+from player import Player
 
-class UCTPlayer(player.Player):
+class MCTSPlayer(Player):
+    '''
+    Class representing a player using one of the implemented verions of MCTS algorithm.
+    '''
     def __init__(self, color: PlayerColor, seed: int = 10, simulation_count: int = 500, version: MCTSVersion = MCTSVersion.UCT) -> None:
         super().__init__(color)
         self.simulation_count = simulation_count

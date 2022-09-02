@@ -8,6 +8,9 @@ from othello_utils import PlayerColor
 from player import Player, UserPlayer
 
 class OthelloGame:
+    '''
+    Class representing game logic including render, input and output.
+    '''
     __FPS = 60
     __WIDTH, __HEIGHT = 800, 600
     __BG_COLOR = (0,100,0)
@@ -32,6 +35,9 @@ class OthelloGame:
             self.__window = pygame.display.set_mode((self.__WIDTH, self.__HEIGHT))
 
     def run_game(self) -> None:
+        '''
+        Runs main loop of the game
+        '''
         self.__is_game_in_progress = True
         fps_clock = pygame.time.Clock()
         while True:
@@ -64,9 +70,15 @@ class OthelloGame:
             fps_clock.tick(self.__FPS)
 
     def get_result(self) -> dict[PlayerColor, int]:
+        '''
+        Returns points scored by each player
+        '''
         return self.__board.points
 
     def get_times(self) -> dict[PlayerColor, int]:
+        '''
+        Returns accumulated move times for each player
+        '''
         return self.__move_times
 
     def __is_any_move_possible(self) -> bool:

@@ -2,6 +2,10 @@ from typing import Generator
 from othello_utils import Direction, PlayerColor, rotated
 
 class Board:
+    '''
+    Class responsible for storing information about board and result
+    This class also handles simple logic such as checking legal actions
+    '''
     ROWS, COLS = 8, 8
 
     def __init__(self) -> None:
@@ -9,10 +13,17 @@ class Board:
         self.__init_board()
 
     def evaluate_move(self, col: int, row: int, color: PlayerColor) -> int:
+        '''
+        Returns number of pawns captured by placing pawn of specific color in specified row and col of the board
+        If the move is illegal, returns -1
+        '''
         value = len(self.get_captures(col, row, color))
         return value if value > 0 else -1
 
     def get_captures(self, col: int, row: int, color: PlayerColor) -> list[tuple[int, int]]:
+        '''
+        Returns list of (row, col)-coordinates for all pawns that will be captured by placing pawn of specific color in specified row and col of the board
+        '''
         if self.__field[col][row] != 0:
             return []
         captures = []
@@ -21,6 +32,9 @@ class Board:
         return captures
 
     def get_legal_actions(self, player_color: PlayerColor) -> list[tuple[int, int]]:
+        '''
+        Returns list of (row, col)-coordinates for all fields where pawn of specified color can be legally placed
+        '''
         moves = []
         for i in range(self.COLS):
             for j in range(self.ROWS):
@@ -29,6 +43,9 @@ class Board:
         return moves
 
     def refresh_result(self) -> None:
+        '''
+        Refreshes result stored in points array, counting pawns placed on the board
+        '''
         self.points[PlayerColor.BLACK] = self.points[PlayerColor.WHITE] = 0
         for i in range(self.COLS):
             for j in range(self.ROWS):
@@ -36,6 +53,9 @@ class Board:
                     self.points[PlayerColor(self.__field[i][j])] += 1
 
     def can_move(self, color: PlayerColor) -> bool:
+        '''
+        Returns boolean value indicating if there is any legal move for player with specified color
+        '''
         if self.points[PlayerColor.BLACK] + self.points[PlayerColor.WHITE] == 64:
             return False
 
@@ -46,6 +66,11 @@ class Board:
         return False
 
     def move(self, col: int, row: int, color: PlayerColor) -> bool:
+        '''
+        If legal, update board fields with results of placing a pawn of specific color in specified row and col of the board.
+        Returns true if move was possible or false if it was illegal.
+        Result is not updated by this method. It has to be done manually by calling refresh_result method.
+        '''
         if self.evaluate_move(col, row, color) < 0:
             return False
         for capture in self.get_captures(col, row, color):
@@ -54,12 +79,21 @@ class Board:
         return True
 
     def get_field(self) -> list[list[int]]:
+        '''
+        Returns color values of pawns placed on all fields on the board.
+        '''
         return self.__field
 
     def rotate_board(self) -> None:
+        '''
+        Overwrites current board by rotating it
+        '''
         self.__field = rotated(self.__field)
 
     def get_leader(self) -> PlayerColor:
+        '''
+        Return leader's color
+        '''
         if self.points[PlayerColor.BLACK] == self.points[PlayerColor.WHITE]:
             return None
         if self.points[PlayerColor.BLACK] > self.points[PlayerColor.WHITE]:

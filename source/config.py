@@ -5,14 +5,23 @@ from heuristic_player import AlphaBetaHeuristicPlayer, SimpleHeuristicPlayer
 from othello_utils import MCTSVersion, PlayerColor
 from match import Match
 from player import Player, RandomPlayer, UserPlayer
-from uct_player import UCTPlayer
+from mcts_player import MCTSPlayer
 
 class GameType(Enum):
+    '''
+    Type of the game - match for single game or tournament for set of games.
+    '''
     MATCH = "match"
     TOURNAMENT = "tournament"
 
 class PlayerConfig():
+    '''
+    Player's configuration - information about color and used algorithm.
+    '''
     class PlayerType(Enum):
+        '''
+        Type of the player - algorithm to use for bot or \"user\" for real player.
+        '''
         USER = "user"
         SIMPLE_HEURISTIC = "simple_heuristic"
         HEURISTIC = "heuristic"
@@ -22,6 +31,9 @@ class PlayerConfig():
         MCTS_GROUPING = "mcts_grouping"
 
     class PlayerColor(Enum):
+        '''
+        Color of player's pawns.
+        '''
         BLACK = "black"
         WHITE = "white"
 
@@ -30,6 +42,9 @@ class PlayerConfig():
         self.color = PlayerConfig.PlayerColor(parsed_config["player_color"]) if "player_color" in parsed_config else None
 
     def to_game_player(self, color: "PlayerConfig.PlayerColor" = None, seed: int = None, simulation_depth: int = 5, simulation_count: int = 500) -> Player:
+        '''
+        Returns instance of class derived from \"Player\", created based on configuraiton.
+        '''
         if color is None:
             color = self.color
         player_color = PlayerColor[color.name]
@@ -43,13 +58,16 @@ class PlayerConfig():
             case PlayerConfig.PlayerType.RANDOM:
                 return RandomPlayer(player_color, seed)
             case PlayerConfig.PlayerType.MCTS:
-                return UCTPlayer(player_color, seed, simulation_count, MCTSVersion.UCT)
+                return MCTSPlayer(player_color, seed, simulation_count, MCTSVersion.UCT)
             case PlayerConfig.PlayerType.MCTS_UCB:
-                return UCTPlayer(player_color, seed, simulation_count, MCTSVersion.UCB1_TUNED)
+                return MCTSPlayer(player_color, seed, simulation_count, MCTSVersion.UCB1_TUNED)
             case PlayerConfig.PlayerType.MCTS_GROUPING:
-                return UCTPlayer(player_color, seed, simulation_count, MCTSVersion.UCT_GROUPING)
+                return MCTSPlayer(player_color, seed, simulation_count, MCTSVersion.UCT_GROUPING)
 
 class ConfigModel:
+    '''
+    Configuration for Othello game. Model for \"config.json\".
+    '''
     def __init__(self, parsed_config: dict) -> None:
         self.game_type = GameType(parsed_config.get("game_type", "match"))
         self.show_visualization = parsed_config.get("show_visualization", True)
@@ -65,6 +83,9 @@ class ConfigModel:
                                     or (len(self.__players) == 2 and self.__players[0].color == self.__players[1].color))
 
     def get_matches(self) -> list[Match]:
+        '''
+        Returns list of all matches that will should be played according to configuration.
+        '''
         if len(self.__players) < 2:
             raise Exception('Invalid configration - requires at least 2 players')
         matches: list[Match] = []
@@ -95,6 +116,9 @@ class ConfigModel:
 
     @staticmethod
     def get_from_file(file_name: str) -> "ConfigModel":
+        '''
+        Reads the configuration from files, parses it and returns the instance of \"ConfigModel\" class.
+        '''
         with open(file_name, 'r', encoding='utf8') as file:
             data = json.load(file)
         return ConfigModel(data)
