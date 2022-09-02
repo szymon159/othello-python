@@ -1,4 +1,5 @@
 import copy
+from collections import defaultdict
 from board import Board
 from othello_utils import HEURISTIC_WEIGHTS, PlayerColor
 
@@ -72,3 +73,27 @@ class AlphaBetaState(State):
                 if self.board[col, row] == player_color.value:
                     player_points += HEURISTIC_WEIGHTS[col][row]
         return player_points
+
+class GroupingGraphState(State):
+    def __init__(self, board: Board, color: PlayerColor) -> None:
+        super().__init__(board, color)
+        self.number_of_visits = 0
+        self.results = defaultdict(int)
+        self.results[1] = 0
+        self.results[0] = 0
+        self.results[-1] = 0
+
+    def rotate_board(self) -> None:
+        self.board.rotate_board()
+        return self
+
+    def check_if_in_dictionary(self, dictionary: dict) -> bool:
+        if self.to_string() in dictionary:
+            return True
+        elif self.rotate_board().to_string() in dictionary:
+            return True
+        elif self.rotate_board().to_string() in dictionary:
+            return True
+        elif self.rotate_board().to_string() in dictionary:
+            return True
+        return False

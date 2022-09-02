@@ -24,6 +24,8 @@ class OthelloGame:
         self.__move_times = {player.color: 0 for player in players}
         self.__time_start = 0
         if self.__is_board_displayed:
+            # Line below is required to ignore pylint's fake-error from pygame module
+            # pylint: disable=maybe-no-member
             pygame.init()
             pygame.display.set_caption("Othello")
             self.__font = pygame.font.SysFont('comicsans', 30)
@@ -35,10 +37,14 @@ class OthelloGame:
         while True:
             # Process events, but only if board is displayed
             if self.__is_board_displayed:
-                for event in pygame.event.get():
+                for event in pygame.event.get():\
+                    # Line below is required to ignore pylint's fake-error from pygame module
+                    # pylint: disable=maybe-no-member
                     if event.type == pygame.QUIT:
                         self.__is_move_in_progress = False # This will help stopping background worker if still running
                         return False
+                    # Line below is required to ignore pylint's fake-error from pygame module
+                    # pylint: disable=maybe-no-member
                     if event.type == pygame.MOUSEBUTTONDOWN and isinstance(self.__current_player, UserPlayer) and self.__is_move_in_progress:
                         self.__get_user_move(pygame.mouse.get_pos())
             # Check if game is finished and no move is pending
@@ -162,7 +168,7 @@ class OthelloGame:
             self.__current_player = self.__players[-self.__current_player.color.value]
         self.__is_move_in_progress = False
 
-    def __print_final_result(self):
+    def __print_final_result(self) -> None:
         print(f'Game over! Final result: BLACK : {self.__board.points[PlayerColor.BLACK]}, WHITE: {self.__board.points[PlayerColor.WHITE]}.')
         winner_color = self.__board.get_leader()
         if winner_color is None:

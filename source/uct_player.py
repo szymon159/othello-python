@@ -1,9 +1,7 @@
 from board import Board
-from grouping.graph_node import GraphNode
-from grouping.graph_state import GraphState
 from othello_utils import PlayerColor, MCTSVersion
-from state import State
-from node import MCTSNode
+from state import State, GroupingGraphState
+from node import MCTSNode, GroupingGraphNode
 import player
 
 class UCTPlayer(player.Player):
@@ -18,11 +16,11 @@ class UCTPlayer(player.Player):
         version_tmp = self.version
         if version_tmp == MCTSVersion.UCT_GROUPING:
             if board_copy.points[PlayerColor.BLACK] + board_copy.points[PlayerColor.WHITE] < 15:
-                state = GraphState(board_copy, self.color)
+                state = GroupingGraphState(board_copy, self.color)
                 state_to_str = state.to_string()
                 self.state_dict[state_to_str] = state
 
-                tree_root = GraphNode(GraphState(board_copy, self.color), self.color, state_dict = self.state_dict, seed = self.seed)
+                tree_root = GroupingGraphNode(GroupingGraphState(board_copy, self.color), self.color, state_dict = self.state_dict, seed = self.seed)
                 best_action = tree_root.best_action(int(self.simulation_count/2))
                 col, row, _  = best_action.parent_action
             else:

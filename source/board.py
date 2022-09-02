@@ -5,6 +5,7 @@ class Board:
     ROWS, COLS = 8, 8
 
     def __init__(self) -> None:
+        self.__field = [[]]
         self.__init_board()
 
     def evaluate_move(self, col: int, row: int, color: PlayerColor) -> int:
@@ -52,10 +53,10 @@ class Board:
         self.__field[col][row] = color.value
         return True
 
-    def get_field(self):
+    def get_field(self) -> list[list[int]]:
         return self.__field
 
-    def rotate_board(self):
+    def rotate_board(self) -> None:
         self.__field = rotated(self.__field)
 
     def get_leader(self) -> PlayerColor:

@@ -1,9 +1,9 @@
+from timeit import default_timer as timer
 from config import ConfigModel
 from othello_game import OthelloGame
-from timeit import default_timer as timer
 
 def main():
-    config = ConfigModel.get_from_file('config.json')
+    config = ConfigModel.get_from_file('source/config/config.json')
 
     if config.output_file:
         with open(config.output_file, 'w', encoding='utf8') as output_file:

@@ -4,10 +4,10 @@ import copy
 from random import Random
 import numpy as np
 from othello_utils import PlayerColor, MCTSVersion
-from state import AlphaBetaState, State
+from state import AlphaBetaState, State, GroupingGraphState
 
 class Node:
-    def __init__(self, state: State, color: PlayerColor, parent = None, parent_action: tuple[int, int, PlayerColor] = None):
+    def __init__(self, state: State, color: PlayerColor, parent: "Node" = None, parent_action: tuple[int, int, PlayerColor] = None):
         self.state = state
         self.player_color = color
         self.parent = parent
@@ -33,8 +33,9 @@ class Node:
         return self.state.is_game_over()
 
 class MCTSNode(Node):
-    def __init__(self, state: State, color: PlayerColor, seed: int, parent=None, parent_action: tuple[int, int, PlayerColor] = None, version: MCTSVersion = MCTSVersion.UCT):
+    def __init__(self, state: State, color: PlayerColor, seed: int, parent: "MCTSNode" = None, parent_action: tuple[int, int, PlayerColor] = None, version: MCTSVersion = MCTSVersion.UCT):
         super().__init__(state, color, parent, parent_action)
+        self.parent = parent
         self.version = version
         self.reward_list = []
         self._children = []
@@ -47,27 +48,27 @@ class MCTSNode(Node):
         self._untried_actions = self._get_untried_actions()
         self._random_seed = seed
         self._random = Random(self._random_seed)
+        self._iteration_count = None
 
-    def best_action(self, simulation_count) -> tuple[int, int]:
+    def best_action(self, simulation_count: int) -> tuple[int, int]:
         '''
         Returns best action for node
         '''
         for i in range(simulation_count):
-            #print(f'Iteration {i}')
             self._iteration_count = i + 1
-            v = self._tree_policy()
-            reward = v._rollout()
-            v._backpropagate(reward)
+            vertex = self._tree_policy()
+            reward = vertex._rollout()
+            vertex._backpropagate(reward)
 
         return self._best_child_simple()
 
-    def get_iteration_count(self):
-        if self.parent == None:
+    def get_iteration_count(self) -> int:
+        if self.parent is None:
             return self._iteration_count
         else:
             return self.get_iteration_count()
 
-    def _get_untried_actions(self):
+    def _get_untried_actions(self) -> list[tuple[int, int, PlayerColor]]:
         '''
         Returns all untried actions from this node's state
         '''
@@ -103,7 +104,7 @@ class MCTSNode(Node):
         self._children.append(child_node)
         return child_node
 
-    def _is_terminal_node(self):
+    def _is_terminal_node(self) -> bool:
         '''
         Returns True if current node is terminal (is a leaf node)
         '''
@@ -126,7 +127,7 @@ class MCTSNode(Node):
 
         return current_rollout_state.game_result(self.player_color)
 
-    def _backpropagate(self, result):
+    def _backpropagate(self, result: int) -> None:
         '''
         Backpropagates through visited nodes and updates statistics
         '''
@@ -152,8 +153,8 @@ class MCTSNode(Node):
         if self.version == MCTSVersion.UCT or self.version == MCTSVersion.UCT_GROUPING:
             choices_weights = [(c.valuate() / c.n()) + c_param * np.sqrt((np.log(self.n()) / c.n())) for c in self._children]
         if self.version == MCTSVersion.UCB1_TUNED:
-            v = [np.sum([x**2 for x in c.reward_list])/c.n() - (c.valuate()/c.n())**2 + np.sqrt(2*np.log(self.n()) / c.n()) for c in self._children]
-            c_params = [np.sqrt(np.min([1/4, v_i])) for v_i in v]
+            vertex = [np.sum([x**2 for x in c.reward_list])/c.n() - (c.valuate()/c.n())**2 + np.sqrt(2*np.log(self.n()) / c.n()) for c in self._children]
+            c_params = [np.sqrt(np.min([1/4, v_i])) for v_i in vertex]
             choices_weights = [(c.valuate() / c.n()) + c_params[i] * np.sqrt((np.log(self.n()) / c.n()))  for i, c in enumerate(self._children, start=0)]
 
         return self._children[np.argmax(choices_weights)]
@@ -178,12 +179,10 @@ class MCTSNode(Node):
         '''
         current_node = self
         while not current_node._is_terminal_node():
-
             if not current_node._is_fully_expanded():
                 return current_node._expand()
             else:
                 current_node = current_node._best_child(c_param= np.sqrt(2))
-
         return current_node
 
 class AlphaBetaNode(Node):
@@ -228,3 +227,54 @@ class AlphaBetaNode(Node):
 
     def is_terminal_node(self) -> bool:
         return self.level + 1 >= self.__max_depth or super().is_terminal_node()
+
+class GroupingGraphNode(MCTSNode):
+    def __init__(self, state: GroupingGraphState, color: PlayerColor, state_dict, seed: int = 10, parent: "GroupingGraphNode" = None, parent_action: tuple[int, int, PlayerColor] = None):
+        super().__init__(state, color, seed, parent, parent_action)
+        self.state = state
+        self.parent = parent
+        self.state_dictionary = state_dict
+
+    def valuate(self) -> int:
+        '''
+        Returns a difference between the amount of wins and losses
+        '''
+        wins = self.state.results[1]
+        loses = self.state.results[-1]
+        return wins - loses
+
+    def n(self) -> int:
+        '''
+        Returns an amount of times the node was visited
+        '''
+        return self.state.number_of_visits
+
+    def _expand(self) -> "GroupingGraphNode":
+        '''
+        Expands the three towards a random unexplored child
+        '''
+        col, row, move_color = self._untried_actions.pop()
+        board, color= self.state.move(col, row)
+        state = GroupingGraphState(board, color)
+        state_to_str = state.to_string()
+
+        if state.check_if_in_dictionary(self.state_dictionary):
+            state = self.state_dictionary[state.to_string()]
+        else:
+            self.state_dictionary[state_to_str] = state
+
+        child_node = GroupingGraphNode(state, self.player_color, self.state_dictionary, parent=self, parent_action=(col, row, move_color))
+        self._children.append(child_node)
+        return child_node
+
+
+    def _backpropagate(self, result: int) -> None:
+        '''
+        Backpropagates through visited nodes and updates statistics
+        '''
+        if self.state.current_color != self.player_color:
+            result = -result
+        self.state.number_of_visits += 1.
+        self.state.results[result] += 1.
+        if self.parent:
+            self.parent._backpropagate(result)
