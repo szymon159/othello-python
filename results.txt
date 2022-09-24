@@ -1,2 +1,0 @@
-player1,color1,result1,player2,color2,result2
-UCTPlayer-UCB1_TUNED,black,2,UCTPlayer-UCT_GROUPING,white,2
