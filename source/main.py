@@ -1,16 +1,20 @@
+from timeit import default_timer as timer
 from config import ConfigModel
 from othello_game import OthelloGame
-from timeit import default_timer as timer
 
 def main():
-    config = ConfigModel.get_from_file('config.json')
+    '''
+    Project's entry point.
+    Reads config from file, parses it and run all games one by one, using configured UI and printing results to console.
+    '''
+    config = ConfigModel.get_from_file('source/config/config.json')
 
     if config.output_file:
         with open(config.output_file, 'w', encoding='utf8') as output_file:
             output_file.write('player1,color1,result1,player2,color2,result2\n')
 
     matches = config.get_matches()
-    for i, match in enumerate(matches[-3:]):
+    for i, match in enumerate(matches):
         player_names = match.player_names
         print(f'\nMatch {i + 1}: {player_names[0]} vs {player_names[1]}')
         for j, players in enumerate(match.get_games()):

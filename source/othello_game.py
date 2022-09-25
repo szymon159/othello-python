@@ -8,6 +8,9 @@ from othello_utils import PlayerColor
 from player import Player, UserPlayer
 
 class OthelloGame:
+    '''
+    Class representing game logic including render, input and output.
+    '''
     __FPS = 60
     __WIDTH, __HEIGHT = 800, 600
     __BG_COLOR = (0,100,0)
@@ -24,21 +27,30 @@ class OthelloGame:
         self.__move_times = {player.color: 0 for player in players}
         self.__time_start = 0
         if self.__is_board_displayed:
+            # Line below is required to ignore pylint's fake-error from pygame module
+            # pylint: disable=maybe-no-member
             pygame.init()
             pygame.display.set_caption("Othello")
             self.__font = pygame.font.SysFont('comicsans', 30)
             self.__window = pygame.display.set_mode((self.__WIDTH, self.__HEIGHT))
 
     def run_game(self) -> None:
+        '''
+        Runs main loop of the game
+        '''
         self.__is_game_in_progress = True
         fps_clock = pygame.time.Clock()
         while True:
             # Process events, but only if board is displayed
             if self.__is_board_displayed:
-                for event in pygame.event.get():
+                for event in pygame.event.get():\
+                    # Line below is required to ignore pylint's fake-error from pygame module
+                    # pylint: disable=maybe-no-member
                     if event.type == pygame.QUIT:
                         self.__is_move_in_progress = False # This will help stopping background worker if still running
                         return False
+                    # Line below is required to ignore pylint's fake-error from pygame module
+                    # pylint: disable=maybe-no-member
                     if event.type == pygame.MOUSEBUTTONDOWN and isinstance(self.__current_player, UserPlayer) and self.__is_move_in_progress:
                         self.__get_user_move(pygame.mouse.get_pos())
             # Check if game is finished and no move is pending
@@ -58,9 +70,15 @@ class OthelloGame:
             fps_clock.tick(self.__FPS)
 
     def get_result(self) -> dict[PlayerColor, int]:
+        '''
+        Returns points scored by each player
+        '''
         return self.__board.points
 
     def get_times(self) -> dict[PlayerColor, int]:
+        '''
+        Returns accumulated move times for each player
+        '''
         return self.__move_times
 
     def __is_any_move_possible(self) -> bool:
@@ -162,7 +180,7 @@ class OthelloGame:
             self.__current_player = self.__players[-self.__current_player.color.value]
         self.__is_move_in_progress = False
 
-    def __print_final_result(self):
+    def __print_final_result(self) -> None:
         print(f'Game over! Final result: BLACK : {self.__board.points[PlayerColor.BLACK]}, WHITE: {self.__board.points[PlayerColor.WHITE]}.')
         winner_color = self.__board.get_leader()
         if winner_color is None:

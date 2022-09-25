@@ -1,4 +1,0 @@
-player1,color1,result1,player2,color2,result2
-AlphaBetaHeuristicPlayer,black,4,UCTPlayer-UCT,white,1
-AlphaBetaHeuristicPlayer,white,2,UCTPlayer-UCT,black,2
-AlphaBetaHeuristicPlayer,black,2,UCTPlayer-UCT,white,2
